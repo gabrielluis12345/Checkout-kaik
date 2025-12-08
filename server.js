@@ -23,18 +23,21 @@ app.post("/criar-preferencia", async (req, res) => {
         Authorization: `Bearer ${ACCESS_TOKEN}`,
         "Content-Type": "application/json",
       },
+
+      
+
       body: JSON.stringify({
         items: [{
           title: "Produto",
-          quantity: Number(quantidade),
-          unit_price: Number(valor)
+          quantity: Number(quantidade) || 1,
+          unit_price: Number(valor) || 1
         }],
 
         // 🔥 **CORREÇÃO AQUI**
         back_urls: {
-          success: "http://localhost:3000/sucesso.html",
-          failure: "http://localhost:3000/falha.html",
-          pending: "http://localhost:3000/pendente.html"
+          success: "https://checkout-kaik-production.up.railway.app/sucesso.html",
+          failure: "https://checkout-kaik-production.up.railway.app/falha.html",
+          pending: "https://checkout-kaik-production.up.railway.app/pendente.html"
         },
         auto_return: "approved"
 
@@ -63,6 +66,7 @@ app.post("/criar-preferencia", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Backend rodando em http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Servidor rodando na porta " + PORT);
 });

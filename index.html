@@ -129,15 +129,17 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const dados = {
-    nome: document.getElementById("nome").value,
-    cpf: document.getElementById("cpf").value,
-    telefone: document.getElementById("telefone").value,
-    quantidade: quantidade,
-    valor: preco
-  };
+  nome: document.getElementById("nome").value,
+  cpf: document.getElementById("cpf").value,
+  telefone: document.getElementById("telefone").value,
+  quantidade: Number(quantidade),
+  valor: Number(preco)
+};
+
 
   // 🔗 ALTERE AQUI para sua API real:
-  const BACKEND_URL = "http://localhost:3000/criar-preferencia";
+  const BACKEND_URL = "https://checkout-kaik-production.up.railway.app/criar-preferencia";
+
 
   const response = await fetch(BACKEND_URL, {
     method: "POST",
