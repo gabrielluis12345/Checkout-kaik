@@ -8,7 +8,7 @@ app.use(express.static("."));
 
 // CONFIG SUA
 const ACCESS_TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
-const SHEETS_URL = "https://script.google.com/macros/s/AKfycbwh8Z8VFVQdXkY2t4eDL7HFFnZIs-EDJhlyhxGrev5P7P_2lIkNASJYPAoLlbYexeEN4w/exec";
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
 // ===========================
 // 1. CRIAR PREFERÊNCIA
@@ -124,6 +124,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("Servidor rodando na porta " + PORT)
 );
+
 
 
 
