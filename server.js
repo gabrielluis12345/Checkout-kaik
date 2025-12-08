@@ -55,47 +55,43 @@ app.post("/notificacao", async (req, res) => {
   console.log("📩 Webhook recebido:", req.body);
 
   try {
-    const topic = req.body.type || req.body.topic;
     let paymentId = null;
 
-    // 🔹 Caso venha notificação de pagamento direto
-    if (topic === "payment" || topic === "payment.updated") {
+    // 1. Se for pagamento direto
+    if (req.body.type === "payment" || req.body.action === "payment.updated") {
       paymentId = req.body.data.id;
     }
 
-    // 🔹 Caso venha merchant_order (que é seu caso)
-    if (topic === "merchant_order") {
-      const merchantOrderId = req.body.data.id;
+    // 2. Se for merchant_order
+    if (req.body.type === "merchant_order") {
+      const orderId = req.body.data.id;
 
-      const merchantResp = await fetch(
-        `https://api.mercadopago.com/merchant_orders/${merchantOrderId}`,
-        { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } }
-      );
+      const orderResp = await fetch(`https://api.mercadopago.com/merchant_orders/${orderId}`, {
+        headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
+      });
 
-      const merchant = await merchantResp.json();
+      const order = await orderResp.json();
 
-      if (merchant.payments && merchant.payments.length > 0) {
-        paymentId = merchant.payments[0].id;
-      }
+      // Pega o primeiro pagamento
+      paymentId = order.payments[0]?.id;
     }
 
     if (!paymentId) {
-      console.log("⚠ Nenhum paymentId encontrado nessa notificação.");
+      console.log("❌ Nenhum payment_id encontrado.");
       return res.sendStatus(200);
     }
 
-    // Buscar pagamento no MP
-    const resp = await fetch(
-      `https://api.mercadopago.com/v1/payments/${paymentId}`,
-      { headers: { Authorization: `Bearer ${ACCESS_TOKEN}` } }
-    );
+    // CONSULTA PAGAMENTO
+    const pgResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
+    });
 
-    const pagamento = await resp.json();
-    console.log("💰 Pagamento consultado:", pagamento);
-
+    const pagamento = await pgResp.json();
     const dados = pagamento.metadata || {};
 
-    // Enviar para Google Sheets
+    console.log("📌 Pagamento lido:", pagamento.id, pagamento.status);
+
+    // ENVIA PARA PLANILHA
     await fetch(SHEETS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -113,15 +109,17 @@ app.post("/notificacao", async (req, res) => {
     res.sendStatus(200);
 
   } catch (erro) {
-    console.error("❌ Erro no webhook:", erro);
+    console.error("Erro no webhook:", erro);
     res.sendStatus(500);
   }
 });
+
 
 // Porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("Servidor rodando na porta " + PORT)
 );
+
 
 
