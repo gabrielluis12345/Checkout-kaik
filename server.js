@@ -1,7 +1,7 @@
 // ⚡ server.js corrigido para Railway + Mercado Pago
 
 import express from "express";
-import fetch from "node-fetch";
+
 
 const app = express();
 
