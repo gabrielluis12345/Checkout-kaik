@@ -114,7 +114,9 @@ const preco = 0.2;
 
 function atualizarValor() {
   const total = quantidade * preco;
-  document.getElementById("totalValor").textContent = total.toFixed(2).replace(".", ",");
+  document.getElementById("totalValor").textContent = total
+    .toFixed(2)
+    .replace(".", ",");
 }
 
 function alterar(n) {
@@ -132,7 +134,12 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
     cpf: document.getElementById("cpf").value,
     telefone: document.getElementById("telefone").value,
     quantidade: Number(quantidade),
-    valor: Number(preco)
+    valor: Number(preco),
+
+    // 🔥 URLs de retorno (AGORA ENVIANDO!)
+    success_url: "https://checkout-kaik-production-4bce.up.railway.app/sucesso",
+    failure_url: "https://checkout-kaik-production-4bce.up.railway.app/erro",
+    pending_url: "https://checkout-kaik-production-4bce.up.railway.app/pendente",
   };
 
   const BACKEND_URL = "https://checkout-kaik-production-4bce.up.railway.app/criar-preferencia";
@@ -151,18 +158,11 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
     return;
   }
 
-  // REDIRECIONA PARA O MERCADO PAGO
+  // Redireciona para o Mercado Pago
   window.location.href = data.init_point;
 });
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
 
