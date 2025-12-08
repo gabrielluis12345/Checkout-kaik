@@ -1,7 +1,6 @@
 // ⚡ server.js corrigido para Railway + Mercado Pago
 
 import express from "express";
-
 const app = express();
 
 app.use(express.json());
@@ -16,9 +15,8 @@ const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzSZI_jlMYTzeq2KraMa
 // 1. CRIAR PREFERÊNCIA
 // ===========================
 app.post("/criar-preferencia", async (req, res) => {
-  const dados = req.body;
 
-  console.log("Dados recebidos do front:", dados);
+  const dados = req.body;
 
   try {
     const response = await fetch("https://api.mercadopago.com/checkout/preferences", {
@@ -30,32 +28,25 @@ app.post("/criar-preferencia", async (req, res) => {
       body: JSON.stringify({
         items: [{
           title: "Produto",
-          quantity: Number(dados.quantidade) || 1,
-          unit_price: Number(dados.valor) || 1
+          quantity: Number(dados.quantidade),
+          unit_price: Number(dados.valor)
         }],
-
-        metadata: dados,  // 🔥 SALVA NOME/CPF/TEL NO PAGAMENTO
-
+        metadata: dados,
         back_urls: {
           success: "https://checkout-kaik-production-4bce.up.railway.app/sucesso.html",
           failure: "https://checkout-kaik-production-4bce.up.railway.app/falha.html",
           pending: "https://checkout-kaik-production-4bce.up.railway.app/pendente.html"
         },
-
         auto_return: "approved"
-      }),
+      })
     });
 
     const data = await response.json();
 
-    if (!data.init_point) {
-      return res.status(500).json({ error: "Erro ao criar pagamento", data });
-    }
-
     res.json({ init_point: data.init_point });
 
   } catch (erro) {
-    console.error("ERRO GERAL:", erro);
+    console.error(erro);
     res.status(500).json({ error: "Erro no servidor" });
   }
 });
@@ -64,24 +55,22 @@ app.post("/criar-preferencia", async (req, res) => {
 // ===========================
 // 2. WEBHOOK DO MERCADO PAGO
 // ===========================
-app.post("/webhook", async (req, res) => {
+app.post("/notificacao", async (req, res) => {
+
   console.log("Webhook recebido:", req.body);
 
   try {
-    const paymentId = req.body.data.id;
+    const paymentId =
+      req.body.data?.id || req.query['data.id'];
 
-    // CONSULTAR PAGAMENTO
     const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
     });
 
     const pagamento = await resp.json();
-    console.log("Pagamento consultado:", pagamento);
 
-    // PEGAR METADATA ENVIADA NO CRIAR-PREFERENCIA
     const dados = pagamento.metadata || {};
 
-    // ENVIAR PARA GOOGLE SHEETS
     await fetch(SHEETS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,5 +97,7 @@ app.post("/webhook", async (req, res) => {
 // Porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
+
 
 
