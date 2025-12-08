@@ -57,41 +57,43 @@ app.post("/notificacao", async (req, res) => {
   try {
     let paymentId = null;
 
-    // 1. Se for pagamento direto
+    // Caso 1: Webhook de pagamento
     if (req.body.type === "payment" || req.body.action === "payment.updated") {
-      paymentId = req.body.data.id;
+      paymentId = req.body.data?.id;
     }
 
-    // 2. Se for merchant_order
-    if (req.body.type === "merchant_order") {
-      const orderId = req.body.data.id;
+    // Caso 2: Webhook de merchant_order
+    if (!paymentId && (req.body.type === "merchant_order" || req.body.type === "topic_merchant_order_wh")) {
+      const orderId = req.body.id;
 
       const orderResp = await fetch(`https://api.mercadopago.com/merchant_orders/${orderId}`, {
         headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
       });
 
-      const order = await orderResp.json();
+      const orderData = await orderResp.json();
+      console.log("🧾 Dados da merchant order:", orderData);
 
-      // Pega o primeiro pagamento
-      paymentId = order.payments[0]?.id;
+      if (orderData.payments?.length > 0) {
+        paymentId = orderData.payments[0].id;
+      }
     }
 
     if (!paymentId) {
-      console.log("❌ Nenhum payment_id encontrado.");
+      console.log("⚠ Nenhum paymentId encontrado nessa notificação.");
       return res.sendStatus(200);
     }
 
-    // CONSULTA PAGAMENTO
-    const pgResp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+    // Buscar dados do pagamento
+    const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
     });
+    const pagamento = await resp.json();
 
-    const pagamento = await pgResp.json();
+    console.log("💰 Pagamento encontrado:", pagamento);
+
     const dados = pagamento.metadata || {};
 
-    console.log("📌 Pagamento lido:", pagamento.id, pagamento.status);
-
-    // ENVIA PARA PLANILHA
+    // Enviar para a planilha
     await fetch(SHEETS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -106,13 +108,15 @@ app.post("/notificacao", async (req, res) => {
       })
     });
 
+    console.log("📊 Dados enviados para planilha.");
     res.sendStatus(200);
 
   } catch (erro) {
-    console.error("Erro no webhook:", erro);
+    console.error("❌ Erro no webhook:", erro);
     res.sendStatus(500);
   }
 });
+
 
 
 // Porta
@@ -120,6 +124,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("Servidor rodando na porta " + PORT)
 );
+
 
 
 
