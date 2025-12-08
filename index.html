@@ -110,6 +110,7 @@
 
 
 <script>
+<script>
 let quantidade = 1;
 const preco = 0.2; // VALOR DO SEU PRODUTO
 
@@ -129,17 +130,14 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const dados = {
-  nome: document.getElementById("nome").value,
-  cpf: document.getElementById("cpf").value,
-  telefone: document.getElementById("telefone").value,
-  quantidade: Number(quantidade),
-  valor: Number(preco)
-};
+    nome: document.getElementById("nome").value,
+    cpf: document.getElementById("cpf").value,
+    telefone: document.getElementById("telefone").value,
+    quantidade: Number(quantidade),
+    valor: Number(preco)
+  };
 
-
-  // 🔗 ALTERE AQUI para sua API real:
   const BACKEND_URL = "https://checkout-kaik-production-4bce.up.railway.app/criar-preferencia";
-
 
   const response = await fetch(BACKEND_URL, {
     method: "POST",
@@ -149,13 +147,22 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
 
   const data = await response.json();
 
-  // Redirecionar ao Mercado Pago
-  window.location.href = resposta.init_point;
+  if (!data.init_point) {
+    alert("Erro ao criar pagamento");
+    console.log(data);
+    return;
+  }
+
+  // 🚀 AGORA FUNCIONA
+  window.location.href = data.init_point;
 });
+</script>
+
 </script>
 
 </body>
 </html>
+
 
 
 
