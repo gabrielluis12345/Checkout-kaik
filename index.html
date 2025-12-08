@@ -93,7 +93,6 @@
     <input type="text" id="cpf" placeholder="CPF" required>
     <input type="text" id="telefone" placeholder="Celular" required>
 
-    <!-- Contador de Quantidade -->
     <div class="quantidade">
       <button type="button" class="btn-qtd" onclick="alterar(-1)">−</button>
       <span id="qtd">1</span>
@@ -110,9 +109,8 @@
 
 
 <script>
-<script>
 let quantidade = 1;
-const preco = 0.2; // VALOR DO SEU PRODUTO
+const preco = 0.2;
 
 function atualizarValor() {
   const total = quantidade * preco;
@@ -149,15 +147,14 @@ document.getElementById("checkout").addEventListener("submit", async (e) => {
 
   if (!data.init_point) {
     alert("Erro ao criar pagamento");
-    console.log(data);
+    console.log("Resposta recebida:", data);
     return;
   }
 
-  // 🚀 AGORA FUNCIONA
+  // REDIRECIONA PARA O MERCADO PAGO
   window.location.href = data.init_point;
 });
 </script>
-
 
 </body>
 </html>
