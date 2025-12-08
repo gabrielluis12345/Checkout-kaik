@@ -7,7 +7,7 @@ app.use(express.json());
 app.use(express.static("."));
 
 // CONFIG SUA
-const ACCESS_TOKEN = "APP_USR-7919662293588734-120813-aad15c42e877020e9ff8a910e1f4173b-749376790";
+const ACCESS_TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzSZI_jlMYTzeq2KraMaSirAUpHhWM7LGwtIbnd-xhU2vnPSQP7pPdvZYzSXQn7VYqO2A/exec";
 
 
@@ -97,6 +97,7 @@ app.post("/notificacao", async (req, res) => {
 // Porta
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
 
 
 
