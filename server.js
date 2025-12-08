@@ -30,6 +30,10 @@ app.post("/criar-preferencia", async (req, res) => {
           unit_price: Number(dados.valor)
         }],
         metadata: dados,
+
+        // NOVO E OBRIGATÓRIO
+        notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
+
         back_urls: {
           success: "https://checkout-kaik-production-4bce.up.railway.app/sucesso.html",
           failure: "https://checkout-kaik-production-4bce.up.railway.app/falha.html",
@@ -108,7 +112,7 @@ app.post("/notificacao", async (req, res) => {
       })
     });
 
-    console.log("📊 Dados enviados para planilha.");
+    console.log("📊 ENVIADO PARA PLANILHA.");
     res.sendStatus(200);
 
   } catch (erro) {
@@ -116,8 +120,6 @@ app.post("/notificacao", async (req, res) => {
     res.sendStatus(500);
   }
 });
-
-
 
 // Porta
 const PORT = process.env.PORT || 3000;
