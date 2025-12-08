@@ -33,9 +33,9 @@ app.post("/criar-preferencia", async (req, res) => {
           unit_price: Number(valor) || 1       // Garantindo número válido
         }],
         back_urls: {
-          success: "https://checkout-kaik-production.up.railway.app/sucesso.html",
-          failure: "https://checkout-kaik-production.up.railway.app/falha.html",
-          pending: "https://checkout-kaik-production.up.railway.app/pendente.html"
+          success: "https://checkout-kaik-production-4bce.up.railway.app/sucesso.html",
+          failure: "https://checkout-kaik-production-4bce.up.railway.app/falha.html",
+          pending: "https://checkout-kaik-production-4bce.up.railway.app/pendente.html"
         },
         auto_return: "approved"
       }),
@@ -69,3 +69,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Servidor rodando na porta " + PORT);
 });
+
