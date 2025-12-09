@@ -4,11 +4,16 @@ const express = require("express");
 const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static("public"));
+
+// 🔵 Servir index.html na raiz
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
 
 // 🔵 Seu token do Mercado Pago
 const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
@@ -51,9 +56,7 @@ app.post("/criar-pagamento", async (req, res) => {
       transaction_amount: Number(data.valor),
       description: "Produto Exemplo",
       payment_method_id: "pix",
-      payer: {
-        email: data.email
-      }
+      payer: { email: data.email }
     })
   });
 
@@ -132,5 +135,3 @@ app.post("/webhook", async (req, res) => {
 // ===============================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
-
-
