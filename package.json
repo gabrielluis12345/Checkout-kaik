@@ -2,16 +2,15 @@
   "name": "checkout-kaik",
   "version": "1.0.0",
   "main": "server.js",
-  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
   "engines": {
     "node": "20.x"
   },
- "dependencies": {
+  "dependencies": {
     "express": "^5.1.0",
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.6.7",
     "cors": "^2.8.5"
   }
 }
