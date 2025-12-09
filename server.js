@@ -2,38 +2,23 @@
 
 import express from "express";
 import fetch from "node-fetch";
-import bodyParser from "body-parser";
 import cors from "cors";
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static("public"));
 
 const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
 const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
-// 🔵 Criar pagamento PIX interno
+// =====================================================
+// 🔵 CRIAR PAGAMENTO PIX
+// =====================================================
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  // salva como "pending" na planilha
-  await fetch(PLANILHA_URL, {
-    method: "POST",
-    contentType: "application/json",
-    payload: JSON.stringify({
-      nome: data.nome,
-      cpf: data.cpf,
-      email: data.email,
-      nascimento: data.nascimento,
-      telefone: data.telefone,
-      quantidade: data.quantidade,
-      valor: data.valor,
-      status: "pending",
-      payment_id: "aguardando"
-    })
-  });
-
+  //–– Criar pagamento PIX
   const mp = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
@@ -44,20 +29,27 @@ app.post("/criar-pagamento", async (req, res) => {
       transaction_amount: Number(data.valor),
       description: "Produto Exemplo",
       payment_method_id: "pix",
-      payer: { email: data.email }
+      payer: {
+        email: data.email,
+        first_name: data.nome
+      },
+      metadata: data
     })
   });
 
   const r = await mp.json();
 
+  // Resposta para o front
   res.json({
     id: r.id,
-    qr: r.point_of_interaction.transaction_data.qr_code_base64,
+    qr: "data:image/png;base64," + r.point_of_interaction.transaction_data.qr_code_base64,
     code: r.point_of_interaction.transaction_data.qr_code
   });
 });
 
-// 🔵 VERIFICAR STATUS DO PAGAMENTO
+// =====================================================
+// 🔵 VERIFICAR STATUS DO PIX
+// =====================================================
 app.get("/verificar/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -69,39 +61,43 @@ app.get("/verificar/:id", async (req, res) => {
   res.json({ status: r.status });
 });
 
-// 🔵 WEBHOOK DO MERCADO PAGO
+// =====================================================
+// 🔵 WEBHOOK OFICIAL DO MERCADO PAGO
+// =====================================================
 app.post("/webhook", async (req, res) => {
-  if (req.body.type === "payment") {
+  try {
+    if (req.body.type !== "payment") return res.sendStatus(200);
+
     const id = req.body.data.id;
 
-    const mp = await fetch(
-      `https://api.mercadopago.com/v1/payments/${id}`,
-      { headers: { "Authorization": `Bearer ${TOKEN}` } }
-    );
+    const mp = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+      headers: { "Authorization": `Bearer ${TOKEN}` }
+    });
 
     const pag = await mp.json();
 
     if (pag.status === "approved") {
       await fetch(PLANILHA_URL, {
         method: "POST",
-        contentType: "application/json",
-        payload: JSON.stringify({
-          nome: pag.payer.first_name || "",
-          cpf: "",
-          email: pag.payer.email,
-          nascimento: "",
-          telefone: "",
-          quantidade: 1,
-          valor: pag.transaction_amount,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...pag.metadata,
           status: "approved",
           payment_id: id
         })
       });
     }
-  }
 
-  res.sendStatus(200);
+    res.sendStatus(200);
+  } catch (e) {
+    console.log("Erro webhook:", e);
+    res.sendStatus(500);
+  }
 });
 
-app.listen(3000, () => console.log("Servidor rodando na porta 3000"));
 
+// =====================================================
+// SERVIDOR
+// =====================================================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("✔ Servidor rodando porta " + PORT));
