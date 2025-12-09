@@ -10,89 +10,97 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
+// 🔵 Seu token do Mercado Pago
 const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
+
+// 🔵 URL do Apps Script da planilha
 const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
-// 🔵 Criar pagamento PIX
+
+// ===============================================
+// 🔵 1 — CRIAR PAGAMENTO PIX (checkout interno)
+// ===============================================
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  try {
-    // Salva como pending
-    await fetch(PLANILHA_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        nome: data.nome,
-        cpf: data.cpf,
-        email: data.email,
-        nascimento: data.nascimento,
-        telefone: data.telefone,
-        quantidade: data.quantidade,
-        valor: data.valor,
-        status: "pending",
-        payment_id: "aguardando"
-      })
-    });
+  // Salva na planilha como pending
+  await fetch(PLANILHA_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nome: data.nome,
+      cpf: data.cpf,
+      email: data.email,
+      nascimento: data.nascimento,
+      telefone: data.telefone,
+      quantidade: data.quantidade,
+      valor: data.valor,
+      status: "pending",
+      payment_id: "aguardando"
+    })
+  });
 
-    const mp = await fetch("https://api.mercadopago.com/v1/payments", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${TOKEN}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        transaction_amount: Number(data.valor),
-        description: "Produto",
-        payment_method_id: "pix",
-        payer: { email: data.email }
-      })
-    });
+  // Criar pagamento PIX pelo Mercado Pago
+  const mp = await fetch("https://api.mercadopago.com/v1/payments", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      transaction_amount: Number(data.valor),
+      description: "Produto Exemplo",
+      payment_method_id: "pix",
+      payer: {
+        email: data.email
+      }
+    })
+  });
 
-    const r = await mp.json();
+  const r = await mp.json();
 
-    return res.json({
-      id: r.id,
-      qr: r.point_of_interaction.transaction_data.qr_code_base64,
-      code: r.point_of_interaction.transaction_data.qr_code
-    });
+  console.log("Pagamento criado:", r);
 
-  } catch (error) {
-    console.error("ERRO /criar-pagamento:", error);
-    res.status(500).send("Erro interno");
-  }
+  return res.json({
+    id: r.id,
+    qr: r.point_of_interaction.transaction_data.qr_code_base64,
+    code: r.point_of_interaction.transaction_data.qr_code
+  });
 });
 
-// 🔵 Verificar status
+
+// ===============================================
+// 🔵 2 — VERIFICAR STATUS DO PAGAMENTO
+// ===============================================
 app.get("/verificar/:id", async (req, res) => {
-  try {
-    const id = req.params.id;
+  const id = req.params.id;
 
-    const mp = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
-      headers: { "Authorization": `Bearer ${TOKEN}` }
-    });
+  const mp = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+    headers: { "Authorization": `Bearer ${TOKEN}` }
+  });
 
-    const r = await mp.json();
-    return res.json({ status: r.status });
+  const r = await mp.json();
 
-  } catch (error) {
-    console.error("ERRO /verificar:", error);
-    res.status(500).json({ status: "erro" });
-  }
+  return res.json({ status: r.status });
 });
 
-// 🔵 WEBHOOK Mercado Pago
+
+// ===============================================
+// 🔵 3 — WEBHOOK (MP envia confirmação automática)
+// ===============================================
 app.post("/webhook", async (req, res) => {
   try {
     if (req.body.type === "payment") {
       const id = req.body.data.id;
 
-      const mp = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
-        headers: { "Authorization": `Bearer ${TOKEN}` }
-      });
+      const mp = await fetch(
+        `https://api.mercadopago.com/v1/payments/${id}`,
+        { headers: { "Authorization": `Bearer ${TOKEN}` } }
+      );
 
       const pag = await mp.json();
 
+      // Se aprovado, salva na planilha
       if (pag.status === "approved") {
         await fetch(PLANILHA_URL, {
           method: "POST",
@@ -100,7 +108,7 @@ app.post("/webhook", async (req, res) => {
           body: JSON.stringify({
             nome: pag.payer.first_name || "",
             cpf: "",
-            email: pag.payer.email,
+            email: pag.payer.email || "",
             nascimento: "",
             telefone: "",
             quantidade: 1,
@@ -111,15 +119,18 @@ app.post("/webhook", async (req, res) => {
         });
       }
     }
-
-    res.sendStatus(200);
-
-  } catch (error) {
-    console.error("ERRO /webhook:", error);
-    res.sendStatus(500);
+  } catch (err) {
+    console.log("Erro webhook:", err);
   }
+
+  return res.sendStatus(200);
 });
 
+
+// ===============================================
+// 🔵 4 — INICIAR SERVIDOR
+// ===============================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
 
