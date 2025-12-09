@@ -10,129 +10,115 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// 🔵 Servir index.html na raiz
+// Servir o index
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 🔵 Seu token do Mercado Pago
+// TOKEN MP
 const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
 
-// 🔵 URL do Apps Script da planilha
+// Google Planilha
 const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
-
-// ===============================================
-// 🔵 1 — CRIAR PAGAMENTO PIX (checkout interno)
-// ===============================================
+// 🔵 CRIAR PAGAMENTO PIX
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  // Salva na planilha como pending
+  // Salvar na planilha como pending
   await fetch(PLANILHA_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      nome: data.nome,
-      cpf: data.cpf,
-      email: data.email,
-      nascimento: data.nascimento,
-      telefone: data.telefone,
-      quantidade: data.quantidade,
-      valor: data.valor,
+      ...data,
       status: "pending",
       payment_id: "aguardando"
     })
   });
 
-  // Criar pagamento PIX pelo Mercado Pago
-  const mp = await fetch("https://api.mercadopago.com/v1/payments", {
+  // Criar pagamento PIX Mercado Pago
+  const pagamento = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${TOKEN}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      transaction_amount: 2.00,
-      description: "Produto Exemplo",
+      transaction_amount: Number(data.valor),
+      description: "Rifa Viva Sorte",
       payment_method_id: "pix",
-      payer: { email: data.email }
+      notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao", // 🔵 ROTAS IGUAIS
+      payer: {
+        email: data.email,
+        first_name: data.nome
+      }
     })
   });
 
-  const r = await mp.json();
+  const r = await pagamento.json();
 
-  console.log("Pagamento criado:", r);
+  // Se der erro, retornar o motivo
+  if (r.error) {
+    console.log("ERRO MERCADO PAGO:", r);
+    return res.json({ erro: r });
+  }
 
+  // Retornar dados do PIX
   return res.json({
     id: r.id,
-    qr: r.point_of_interaction.transaction_data.qr_code_base64,
-    code: r.point_of_interaction.transaction_data.qr_code
+    qr: r.point_of_interaction?.transaction_data?.qr_code_base64,
+    code: r.point_of_interaction?.transaction_data?.qr_code
   });
 });
 
-
-// ===============================================
-// 🔵 2 — VERIFICAR STATUS DO PAGAMENTO
-// ===============================================
+// 🔵 VERIFICAR STATUS
 app.get("/verificar/:id", async (req, res) => {
   const id = req.params.id;
 
-  const mp = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+  const r = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
     headers: { "Authorization": `Bearer ${TOKEN}` }
   });
 
-  const r = await mp.json();
-
-  return res.json({ status: r.status });
+  const pag = await r.json();
+  return res.json({ status: pag.status });
 });
 
-
-// ===============================================
-// 🔵 3 — WEBHOOK (MP envia confirmação automática)
-// ===============================================
-app.post("/webhook", async (req, res) => {
+// 🔵 WEBHOOK: Mercado Pago envia confirmação
+app.post("/notificacao", async (req, res) => {
   try {
-    if (req.body.type === "payment") {
-      const id = req.body.data.id;
+    const id = req.body.data?.id;
+    if (!id) return res.sendStatus(200);
 
-      const mp = await fetch(
-        `https://api.mercadopago.com/v1/payments/${id}`,
-        { headers: { "Authorization": `Bearer ${TOKEN}` } }
-      );
+    const mp = await fetch(
+      `https://api.mercadopago.com/v1/payments/${id}`,
+      { headers: { "Authorization": `Bearer ${TOKEN}` } }
+    );
 
-      const pag = await mp.json();
+    const pag = await mp.json();
 
-      // Se aprovado, salva na planilha
-      if (pag.status === "approved") {
-        await fetch(PLANILHA_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nome: pag.payer.first_name || "",
-            cpf: "",
-            email: pag.payer.email || "",
-            nascimento: "",
-            telefone: "",
-            quantidade: 1,
-            valor: pag.transaction_amount,
-            status: "approved",
-            payment_id: id
-          })
-        });
-      }
+    // Se aprovado, salva na planilha
+    if (pag.status === "approved") {
+      await fetch(PLANILHA_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome: pag.payer.first_name,
+          email: pag.payer.email,
+          valor: pag.transaction_amount,
+          status: "approved",
+          payment_id: id
+        })
+      });
     }
-  } catch (err) {
-    console.log("Erro webhook:", err);
+  } catch (error) {
+    console.log("Erro no webhook:", error);
   }
 
-  return res.sendStatus(200);
+  res.sendStatus(200);
 });
 
-
-// ===============================================
-// 🔵 4 — INICIAR SERVIDOR
-// ===============================================
+// Iniciar servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
 
