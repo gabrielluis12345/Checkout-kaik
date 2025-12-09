@@ -15,17 +15,25 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// TOKEN MP
+// TOKEN Mercado Pago
 const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
 
-// Google Planilha
+// Google Planilha (Apps Script)
 const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
+
+// =====================================================
 // 🔵 CRIAR PAGAMENTO PIX
+// =====================================================
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  // Salvar na planilha como pending
+  // 🛑 Verificação simples de e-mail
+  if (!data.email || !data.email.includes("@")) {
+    return res.json({ erro: "E-mail inválido ou não enviado!" });
+  }
+
+  // 🔹 Salvar na planilha como pendente
   await fetch(PLANILHA_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -36,7 +44,7 @@ app.post("/criar-pagamento", async (req, res) => {
     })
   });
 
-  // Criar pagamento PIX Mercado Pago
+  // 🔹 Criar PIX no Mercado Pago
   const pagamento = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
@@ -47,23 +55,24 @@ app.post("/criar-pagamento", async (req, res) => {
       transaction_amount: Number(data.valor),
       description: "Rifa Viva Sorte",
       payment_method_id: "pix",
-      notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao", // 🔵 ROTAS IGUAIS
+      notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
+
       payer: {
-        email: data.email,
-        first_name: data.nome
+        email: data.email || "cliente@teste.com",
+        first_name: data.nome || "Cliente"
       }
     })
   });
 
   const r = await pagamento.json();
 
-  // Se der erro, retornar o motivo
+  // Se der erro, retornar
   if (r.error) {
     console.log("ERRO MERCADO PAGO:", r);
     return res.json({ erro: r });
   }
 
-  // Retornar dados do PIX
+  // 🔹 Retorna QR Code para o front
   return res.json({
     id: r.id,
     qr: r.point_of_interaction?.transaction_data?.qr_code_base64,
@@ -71,7 +80,10 @@ app.post("/criar-pagamento", async (req, res) => {
   });
 });
 
-// 🔵 VERIFICAR STATUS
+
+// =====================================================
+// 🔵 ROTA PARA O FRONT VERIFICAR STATUS DO PIX
+// =====================================================
 app.get("/verificar/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -80,15 +92,20 @@ app.get("/verificar/:id", async (req, res) => {
   });
 
   const pag = await r.json();
+
   return res.json({ status: pag.status });
 });
 
-// 🔵 WEBHOOK: Mercado Pago envia confirmação
+
+// =====================================================
+// 🔵 WEBHOOK (Mercado Pago → Seu servidor)
+// =====================================================
 app.post("/notificacao", async (req, res) => {
   try {
     const id = req.body.data?.id;
     if (!id) return res.sendStatus(200);
 
+    // Consulta o pagamento no MP
     const mp = await fetch(
       `https://api.mercadopago.com/v1/payments/${id}`,
       { headers: { "Authorization": `Bearer ${TOKEN}` } }
@@ -96,7 +113,7 @@ app.post("/notificacao", async (req, res) => {
 
     const pag = await mp.json();
 
-    // Se aprovado, salva na planilha
+    // Se aprovado → salva na planilha
     if (pag.status === "approved") {
       await fetch(PLANILHA_URL, {
         method: "POST",
@@ -114,11 +131,13 @@ app.post("/notificacao", async (req, res) => {
     console.log("Erro no webhook:", error);
   }
 
+  // Sempre responder 200 OK
   res.sendStatus(200);
 });
 
-// Iniciar servidor
+
+// =====================================================
+// 🔵 INICIAR SERVIDOR
+// =====================================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
-
-
