@@ -53,7 +53,7 @@ app.post("/criar-pagamento", async (req, res) => {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      transaction_amount: Number(data.valor),
+      transaction_amount: 2.00,
       description: "Produto Exemplo",
       payment_method_id: "pix",
       payer: { email: data.email }
@@ -135,3 +135,4 @@ app.post("/webhook", async (req, res) => {
 // ===============================================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
