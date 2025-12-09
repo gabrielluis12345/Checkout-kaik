@@ -39,9 +39,8 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* LOGO */
     .logo {
-      width: 120px; /* ajuste o tamanho */
+      width: 120px;
       margin-bottom: 10px;
       display: block;
     }
@@ -52,7 +51,6 @@
       margin-bottom: 20px;
     }
 
-    /* Produto */
     .produto {
       display: flex;
       gap: 15px;
@@ -74,7 +72,6 @@
       color: var(--preto);
     }
 
-    /* Quantidade */
     .qty-box {
       display: flex;
       align-items: center;
@@ -115,7 +112,6 @@
       margin-top: 10px;
     }
 
-    /* Formulário */
     input {
       width: 100%;
       padding: 14px;
@@ -150,7 +146,6 @@
       transform: scale(1.02);
     }
 
-    /* PIX */
     #pixArea {
       display: none;
       text-align: center;
@@ -176,12 +171,10 @@
 
   <div class="container">
 
-    <!-- LOGO NO CANTO SUPERIOR ESQUERDO -->
     <img src="logo.png" alt="Logo" class="logo">
 
     <h2>Finalizar Pedido</h2>
 
-    <!-- PRODUTO -->
     <div class="produto">
       <img src="product.jpg" alt="Produto">
       <div>
@@ -190,7 +183,6 @@
       </div>
     </div>
 
-    <!-- QUANTIDADE -->
     <div class="qty-box">
       <button onclick="alterar(-1)">−</button>
       <span id="qtd">1</span>
@@ -199,18 +191,20 @@
 
     <span id="total">R$ 0,20</span>
 
-    <!-- FORMULÁRIO -->
     <form id="form">
-      <input type="text" id="nome" placeholder="Nome completo" required>
-      <input type="text" id="cpf" placeholder="CPF" required>
-      <input type="email" id="email" placeholder="E-mail" required>
-      <input type="date" id="nascimento" required>
-      <input type="text" id="telefone" placeholder="Telefone" required>
+
+      <input type="text" id="nome" name="nome" placeholder="Nome completo" required>
+      <input type="text" id="cpf" name="cpf" placeholder="CPF" required>
+
+      <input type="email" id="email" name="email" placeholder="E-mail" required>
+
+      <input type="date" id="nascimento" name="nascimento" required>
+
+      <input type="text" id="telefone" name="telefone" placeholder="Telefone" required>
 
       <button class="pagar" type="submit">Pagar com PIX</button>
     </form>
 
-    <!-- PIX -->
     <div id="pixArea">
       <h3>Escaneie o QR Code</h3>
       <img id="pixImg" width="240">
@@ -221,6 +215,7 @@
 
 <script>
   let qtd = 1;
+
   function alterar(v) {
     qtd += v;
     if (qtd < 1) qtd = 1;
@@ -230,7 +225,13 @@
 
   document.getElementById("form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
+    // Validação de email
+    if (!email.value.includes("@") || !email.value.includes(".")) {
+      alert("Digite um e-mail válido.");
+      return;
+    }
+
     const body = {
       nome: nome.value,
       cpf: cpf.value,
@@ -248,6 +249,12 @@
     });
 
     const res = await req.json();
+
+    if (res.erro) {
+      alert("Erro ao gerar o PIX: " + res.erro.message);
+      console.log(res.erro);
+      return;
+    }
 
     document.getElementById("pixImg").src = res.qr;
     document.getElementById("pixCopy").innerText = res.code;
@@ -272,4 +279,6 @@
 
 </body>
 </html>
+
+
 
