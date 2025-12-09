@@ -1,166 +1,273 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Checkout - Pagamento</title>
+  <meta charset="UTF-8">
+  <title>Checkout - Produto</title>
 
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #f7f7f7;
-    padding: 20px;
-  }
+  <style>
+    :root {
+      --azul: #1A73E8;
+      --azul-claro: #E8F0FE;
+      --preto: #1f1f1f;
+      --cinza: #6e6e6e;
+      --radius: 14px;
+    }
 
-  .container {
-    max-width: 420px;
-    margin: auto;
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 0 20px #00000015;
-  }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+    }
 
-  h2 {
-    text-align: center;
-    margin-bottom: 25px;
-  }
+    .container {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      padding: 25px;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      animation: aparecer .4s ease-out;
+      position: relative;
+    }
 
-  input {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
-  }
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-  .quantidade {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin: 20px 0;
-  }
+    /* LOGO */
+    .logo {
+      width: 120px; /* ajuste o tamanho */
+      margin-bottom: 10px;
+      display: block;
+    }
 
-  .btn-qtd {
-    background: #d3ad7f;
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+    h2 {
+      text-align: center;
+      color: var(--preto);
+      margin-bottom: 20px;
+    }
 
-  #qtd {
-    font-size: 20px;
-    font-weight: bold;
-  }
+    /* Produto */
+    .produto {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      padding: 15px;
+      border-radius: var(--radius);
+      background: var(--azul-claro);
+      margin-bottom: 20px;
+    }
 
-  .total {
-    text-align: center;
-    font-size: 20px;
-    margin-bottom: 20px;
-  }
+    .produto img {
+      width: 70px;
+      border-radius: var(--radius);
+    }
 
-  button[type="submit"] {
-    width: 100%;
-    padding: 15px;
-    background: #d3ad7f;
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-size: 18px;
-    cursor: pointer;
-  }
+    .produto-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--preto);
+    }
 
-  button[type="submit"]:hover {
-    background: #c79e72;
-  }
+    /* Quantidade */
+    .qty-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
 
-</style>
+    .qty-box button {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--azul);
+      border: none;
+      font-size: 22px;
+      color: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .qty-box button:hover {
+      background: #1765cb;
+      transform: scale(1.1);
+    }
+
+    #qtd {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--preto);
+    }
+
+    #total {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--azul);
+      text-align: center;
+      display: block;
+      margin-top: 10px;
+    }
+
+    /* Formulário */
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius);
+      border: 2px solid #ddd;
+      outline: none;
+      margin-bottom: 15px;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--azul);
+      background: var(--azul-claro);
+    }
+
+    button.pagar {
+      width: 100%;
+      padding: 16px;
+      background: var(--azul);
+      color: #fff;
+      font-size: 18px;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: 0.25s;
+      margin-top: 5px;
+    }
+
+    button.pagar:hover {
+      background: #1765cb;
+      transform: scale(1.02);
+    }
+
+    /* PIX */
+    #pixArea {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+      animation: aparecer .4s ease-out;
+    }
+
+    #pixArea h3 {
+      color: var(--preto);
+    }
+
+    #pixCopy {
+      background: var(--azul-claro);
+      padding: 12px;
+      border-radius: var(--radius);
+      word-break: break-all;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <h2>Finalizar Pedido</h2>
+  <div class="container">
 
-  <form id="checkout">
+    <!-- LOGO NO CANTO SUPERIOR ESQUERDO -->
+    <img src="logo.png" alt="Logo" class="logo">
 
-    <input type="text" id="nome" placeholder="Nome completo" required>
-    <input type="text" id="cpf" placeholder="CPF" required>
-    <input type="text" id="telefone" placeholder="Celular" required>
+    <h2>Finalizar Pedido</h2>
 
-    <div class="quantidade">
-      <button type="button" class="btn-qtd" onclick="alterar(-1)">−</button>
+    <!-- PRODUTO -->
+    <div class="produto">
+      <img src="product.jpg" alt="Produto">
+      <div>
+        <div class="produto-title">Rifa do Milhão Viva Sorte</div>
+        <small>Valor unitário: <b>R$ 0,20</b></small>
+      </div>
+    </div>
+
+    <!-- QUANTIDADE -->
+    <div class="qty-box">
+      <button onclick="alterar(-1)">−</button>
       <span id="qtd">1</span>
-      <button type="button" class="btn-qtd" onclick="alterar(1)">+</button>
+      <button onclick="alterar(1)">+</button>
     </div>
 
-    <div class="total">
-      Total: R$ <span id="totalValor">0,20</span>
+    <span id="total">R$ 0,20</span>
+
+    <!-- FORMULÁRIO -->
+    <form id="form">
+      <input type="text" id="nome" placeholder="Nome completo" required>
+      <input type="text" id="cpf" placeholder="CPF" required>
+      <input type="email" id="email" placeholder="E-mail" required>
+      <input type="date" id="nascimento" required>
+      <input type="text" id="telefone" placeholder="Telefone" required>
+
+      <button class="pagar" type="submit">Pagar com PIX</button>
+    </form>
+
+    <!-- PIX -->
+    <div id="pixArea">
+      <h3>Escaneie o QR Code</h3>
+      <img id="pixImg" width="240">
+      <p id="pixCopy"></p>
+      <p style="color: var(--cinza);">Aguardando pagamento...</p>
     </div>
-
-    <button type="submit">Pagar com Mercado Pago</button>
-  </form>
-</div>
-
+  </div>
 
 <script>
-let quantidade = 1;
-const preco = 0.2;
-
-function atualizarValor() {
-  const total = quantidade * preco;
-  document.getElementById("totalValor").textContent = total
-    .toFixed(2)
-    .replace(".", ",");
-}
-
-function alterar(n) {
-  quantidade += n;
-  if (quantidade < 1) quantidade = 1;
-  document.getElementById("qtd").textContent = quantidade;
-  atualizarValor();
-}
-
-document.getElementById("checkout").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const dados = {
-    nome: document.getElementById("nome").value,
-    cpf: document.getElementById("cpf").value,
-    telefone: document.getElementById("telefone").value,
-    quantidade: Number(quantidade),
-    valor: Number(preco),
-
-    // 🔥 URLs de retorno (AGORA ENVIANDO!)
-    success_url: "https://checkout-kaik-production-4bce.up.railway.app/sucesso",
-    failure_url: "https://checkout-kaik-production-4bce.up.railway.app/erro",
-    pending_url: "https://checkout-kaik-production-4bce.up.railway.app/pendente",
-  };
-
-  const BACKEND_URL = "https://checkout-kaik-production-4bce.up.railway.app/criar-preferencia";
-
-  const response = await fetch(BACKEND_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(dados)
-  });
-
-  const data = await response.json();
-
-  if (!data.init_point) {
-    alert("Erro ao criar pagamento");
-    console.log("Resposta recebida:", data);
-    return;
+  let qtd = 1;
+  function alterar(v) {
+    qtd += v;
+    if (qtd < 1) qtd = 1;
+    document.getElementById("qtd").innerText = qtd;
+    document.getElementById("total").innerText = "R$ " + (qtd * 0.20).toFixed(2);
   }
 
-  // Redireciona para o Mercado Pago
-  window.location.href = data.init_point;
-});
+  document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const body = {
+      nome: nome.value,
+      cpf: cpf.value,
+      email: email.value,
+      nascimento: nascimento.value,
+      telefone: telefone.value,
+      quantidade: qtd,
+      valor: (qtd * 0.20).toFixed(2)
+    };
+
+    const req = await fetch("/criar-pagamento", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)
+    });
+
+    const res = await req.json();
+
+    document.getElementById("pixImg").src = res.qr;
+    document.getElementById("pixCopy").innerText = res.code;
+    document.getElementById("pixArea").style.display = "block";
+    document.getElementById("form").style.display = "none";
+
+    verificar(res.id);
+  });
+
+  async function verificar(id) {
+    const loop = setInterval(async () => {
+      const r = await fetch(`/verificar/${id}`);
+      const data = await r.json();
+
+      if (data.status === "approved") {
+        clearInterval(loop);
+        window.location.href = "/sucesso.html";
+      }
+    }, 4000);
+  }
 </script>
 
 </body>
