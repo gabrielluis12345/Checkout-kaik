@@ -1,6 +1,7 @@
 // ⚡ server.js corrigido para Railway + Mercado Pago
 
 import express from "express";
+import fetch from "node-fetch";
 const app = express();
 
 app.use(express.json());
@@ -29,9 +30,10 @@ app.post("/criar-preferencia", async (req, res) => {
           quantity: Number(dados.quantidade),
           unit_price: Number(dados.valor)
         }],
+
         metadata: dados,
 
-        // NOVO E OBRIGATÓRIO
+        // WEBHOOK CORRETO NO SEU DOMÍNIO
         notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
 
         back_urls: {
@@ -39,6 +41,7 @@ app.post("/criar-preferencia", async (req, res) => {
           failure: "https://checkout-kaik-production-4bce.up.railway.app/falha.html",
           pending: "https://checkout-kaik-production-4bce.up.railway.app/pendente.html"
         },
+
         auto_return: "approved"
       })
     });
@@ -61,13 +64,13 @@ app.post("/notificacao", async (req, res) => {
   try {
     let paymentId = null;
 
-    // Caso 1: Webhook de pagamento
+    // Caso 1: Webhook direto de pagamento
     if (req.body.type === "payment" || req.body.action === "payment.updated") {
       paymentId = req.body.data?.id;
     }
 
     // Caso 2: Webhook de merchant_order
-    if (!paymentId && (req.body.type === "merchant_order" || req.body.type === "topic_merchant_order_wh")) {
+    if (!paymentId && (req.body.type === "merchant_order" || req.body.topic === "merchant_order")) {
       const orderId = req.body.id;
 
       const orderResp = await fetch(`https://api.mercadopago.com/merchant_orders/${orderId}`, {
@@ -91,8 +94,8 @@ app.post("/notificacao", async (req, res) => {
     const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
     });
-    const pagamento = await resp.json();
 
+    const pagamento = await resp.json();
     console.log("💰 Pagamento encontrado:", pagamento);
 
     const dados = pagamento.metadata || {};
@@ -126,6 +129,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log("Servidor rodando na porta " + PORT)
 );
+
 
 
 
