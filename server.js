@@ -1,7 +1,6 @@
-// ⚡ server.js corrigido para Railway + Mercado Pag
+// ⚡ server.js corrigido para Railway + Mercado Pago
 
 import express from "express";
-import fetch from "node-fetch";
 const app = express();
 
 app.use(express.json());
@@ -33,7 +32,6 @@ app.post("/criar-preferencia", async (req, res) => {
 
         metadata: dados,
 
-        // WEBHOOK CORRETO NO SEU DOMÍNIO
         notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
 
         back_urls: {
@@ -64,12 +62,10 @@ app.post("/notificacao", async (req, res) => {
   try {
     let paymentId = null;
 
-    // Caso 1: Webhook direto de pagamento
     if (req.body.type === "payment" || req.body.action === "payment.updated") {
       paymentId = req.body.data?.id;
     }
 
-    // Caso 2: Webhook de merchant_order
     if (!paymentId && (req.body.type === "merchant_order" || req.body.topic === "merchant_order")) {
       const orderId = req.body.id;
 
@@ -86,11 +82,10 @@ app.post("/notificacao", async (req, res) => {
     }
 
     if (!paymentId) {
-      console.log("⚠ Nenhum paymentId encontrado nessa notificação.");
+      console.log("⚠ Nenhum paymentId encontrado.");
       return res.sendStatus(200);
     }
 
-    // Buscar dados do pagamento
     const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
       headers: { Authorization: `Bearer ${ACCESS_TOKEN}` }
     });
@@ -100,7 +95,6 @@ app.post("/notificacao", async (req, res) => {
 
     const dados = pagamento.metadata || {};
 
-    // Enviar para a planilha
     await fetch(SHEETS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -115,7 +109,7 @@ app.post("/notificacao", async (req, res) => {
       })
     });
 
-    console.log("📊 ENVIADO PARA PLANILHA.");
+    console.log("📊 Enviado para planilha.");
     res.sendStatus(200);
 
   } catch (erro) {
@@ -124,11 +118,9 @@ app.post("/notificacao", async (req, res) => {
   }
 });
 
-// Porta
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log("Servidor rodando na porta " + PORT)
-);
+app.listen(PORT, () => console.log("Servidor rodando na porta " + PORT));
+
 
 
 
