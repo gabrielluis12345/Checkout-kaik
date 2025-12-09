@@ -153,10 +153,6 @@
       animation: aparecer .4s ease-out;
     }
 
-    #pixArea h3 {
-      color: var(--preto);
-    }
-
     #pixCopy {
       background: var(--azul-claro);
       padding: 12px;
@@ -195,11 +191,8 @@
 
       <input type="text" id="nome" name="nome" placeholder="Nome completo" required>
       <input type="text" id="cpf" name="cpf" placeholder="CPF" required>
-
       <input type="email" id="email" name="email" placeholder="E-mail" required>
-
       <input type="date" id="nascimento" name="nascimento" required>
-
       <input type="text" id="telefone" name="telefone" placeholder="Telefone" required>
 
       <button class="pagar" type="submit">Pagar com PIX</button>
@@ -226,12 +219,6 @@
   document.getElementById("form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    // Validação de email
-    if (!email.value.includes("@") || !email.value.includes(".")) {
-      alert("Digite um e-mail válido.");
-      return;
-    }
-
     const body = {
       nome: nome.value,
       cpf: cpf.value,
@@ -251,12 +238,11 @@
     const res = await req.json();
 
     if (res.erro) {
-      alert("Erro ao gerar o PIX: " + res.erro.message);
-      console.log(res.erro);
+      alert("Erro ao gerar o PIX: " + res.erro);
       return;
     }
 
-    document.getElementById("pixImg").src = res.qr;
+    document.getElementById("pixImg").src = "data:image/png;base64," + res.qr;
     document.getElementById("pixCopy").innerText = res.code;
     document.getElementById("pixArea").style.display = "block";
     document.getElementById("form").style.display = "none";
@@ -279,6 +265,3 @@
 
 </body>
 </html>
-
-
-
