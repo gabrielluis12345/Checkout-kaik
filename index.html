@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <title>Checkout - Produto</title>
 
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
   <style>
     :root {
       --azul: #1A73E8;
@@ -161,6 +165,24 @@
       font-size: 13px;
       margin-top: 10px;
     }
+
+    #timer {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #d93025;
+    }
+
+    #copiarBtn {
+      margin-top: 12px;
+      padding: 10px 20px;
+      background: var(--azul);
+      color: #fff;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 <body>
@@ -202,12 +224,26 @@
       <h3>Escaneie o QR Code</h3>
       <img id="pixImg" width="240">
       <p id="pixCopy"></p>
+
+      <button id="copiarBtn">Copiar código PIX</button>
+
+      <p id="timer"></p>
+
       <p style="color: var(--cinza);">Aguardando pagamento...</p>
     </div>
   </div>
 
 <script>
   let qtd = 1;
+  let expiraEm = 600; // 10 minutos
+  let intervalo;
+
+  // impedir botão voltar mostrar tela errada
+  window.history.pushState(null, null, window.location.href);
+  window.onpopstate = function () {
+    alert("Pagamento cancelado.");
+    window.location.href = "/";
+  };
 
   function alterar(v) {
     qtd += v;
@@ -215,6 +251,11 @@
     document.getElementById("qtd").innerText = qtd;
     document.getElementById("total").innerText = "R$ " + (qtd * 0.20).toFixed(2);
   }
+
+  document.getElementById("copiarBtn").onclick = () => {
+    navigator.clipboard.writeText(document.getElementById("pixCopy").innerText);
+    alert("Código copiado!");
+  };
 
   document.getElementById("form").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -247,8 +288,28 @@
     document.getElementById("pixArea").style.display = "block";
     document.getElementById("form").style.display = "none";
 
+    iniciarTimer();
     verificar(res.id);
   });
+
+  function iniciarTimer() {
+    intervalo = setInterval(() => {
+      expiraEm--;
+
+      let m = Math.floor(expiraEm / 60);
+      let s = expiraEm % 60;
+
+      document.getElementById("timer").innerText = 
+        `Expira em: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+
+      if (expiraEm <= 0) {
+        clearInterval(intervalo);
+        alert("O tempo expirou! Gere um novo PIX.");
+        window.location.href = "/";
+      }
+
+    }, 1000);
+  }
 
   async function verificar(id) {
     const loop = setInterval(async () => {
@@ -257,11 +318,14 @@
 
       if (data.status === "approved") {
         clearInterval(loop);
+        clearInterval(intervalo);
         window.location.href = "/sucesso.html";
       }
+
     }, 4000);
   }
 </script>
 
 </body>
 </html>
+
