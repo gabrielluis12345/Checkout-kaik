@@ -150,6 +150,7 @@
       display: none;
       text-align: center;
       margin-top: 20px;
+      animation: aparecer .4s ease-out;
     }
 
     #pixCopy {
@@ -170,10 +171,6 @@
       cursor: pointer;
       border: none;
       font-size: 14px;
-    }
-
-    #copyBtn:hover {
-      background: #1765cb;
     }
 
     #timer {
@@ -236,12 +233,11 @@
 <script>
   let qtd = 1;
   let timerInterval;
-  let pagamentoAtivo = false;
 
-  // LIMPA status ao entrar no site inicialmente
-  if (!sessionStorage.getItem("entrou")) {
+  // 🔥 RESETA STATUS AO ENTRAR NO INDEX (permitir tentar novamente)
+  const st = localStorage.getItem("statusPagamento");
+  if (st === "cancelado" || st === "aprovado") {
     localStorage.removeItem("statusPagamento");
-    sessionStorage.setItem("entrou", "1");
   }
 
   function alterar(v) {
@@ -282,11 +278,11 @@
       return;
     }
 
-    pagamentoAtivo = true;
     localStorage.setItem("statusPagamento", "pendente");
 
     document.getElementById("pixImg").src = "data:image/png;base64," + res.qr;
     document.getElementById("pixCopy").innerText = res.code;
+
     document.getElementById("pixArea").style.display = "block";
     document.getElementById("form").style.display = "none";
 
@@ -327,10 +323,9 @@
     }, 1000);
   }
 
-  // Se VOLTAR enquanto pagamento está pendente -> cancelar
+  // 🔥 SE VOLTAR PARA O CHECKOUT COM PAGAMENTO PENDENTE → CANCELA
   window.addEventListener("pageshow", () => {
     const status = localStorage.getItem("statusPagamento");
-
     if (status === "pendente") {
       window.location.href = "/cancelado.html";
     }
