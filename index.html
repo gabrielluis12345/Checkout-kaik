@@ -4,10 +4,6 @@
   <meta charset="UTF-8">
   <title>Checkout - Produto</title>
 
-  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
   <style>
     :root {
       --azul: #1A73E8;
@@ -166,23 +162,21 @@
       margin-top: 10px;
     }
 
-    #timer {
+    #copyBtn {
       margin-top: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      color: #d93025;
-    }
-
-    #copiarBtn {
-      margin-top: 12px;
-      padding: 10px 20px;
       background: var(--azul);
-      color: #fff;
-      border-radius: 8px;
       border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: var(--radius);
       cursor: pointer;
     }
 
+    #timer {
+      margin-top: 15px;
+      font-weight: bold;
+      color: red;
+    }
   </style>
 </head>
 <body>
@@ -225,25 +219,21 @@
       <img id="pixImg" width="240">
       <p id="pixCopy"></p>
 
-      <button id="copiarBtn">Copiar código PIX</button>
-
-      <p id="timer"></p>
+      <button id="copyBtn">Copiar código PIX</button>
 
       <p style="color: var(--cinza);">Aguardando pagamento...</p>
+
+      <p id="timer"></p>
     </div>
   </div>
 
 <script>
-  let qtd = 1;
-  let expiraEm = 600; // 10 minutos
-  let intervalo;
+  // 🔴 BLOQUEIO AO VOLTAR PARA MOSTRAR CANCELADO
+  if (localStorage.getItem("pagamento_status") === "pending") {
+      window.location.href = "cancelado.html";
+  }
 
-  // impedir botão voltar mostrar tela errada
-  window.history.pushState(null, null, window.location.href);
-  window.onpopstate = function () {
-    alert("Pagamento cancelado.");
-    window.location.href = "/";
-  };
+  let qtd = 1;
 
   function alterar(v) {
     qtd += v;
@@ -252,13 +242,10 @@
     document.getElementById("total").innerText = "R$ " + (qtd * 0.20).toFixed(2);
   }
 
-  document.getElementById("copiarBtn").onclick = () => {
-    navigator.clipboard.writeText(document.getElementById("pixCopy").innerText);
-    alert("Código copiado!");
-  };
-
   document.getElementById("form").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    localStorage.setItem("pagamento_status", "pending");
 
     const body = {
       nome: nome.value,
@@ -289,28 +276,39 @@
     document.getElementById("form").style.display = "none";
 
     iniciarTimer();
+
     verificar(res.id);
   });
 
+  // 🔵 COPIAR PIX
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    navigator.clipboard.writeText(document.getElementById("pixCopy").innerText);
+    alert("Código PIX copiado!");
+  });
+
+  // 🔵 TIMER DE 10 MINUTOS
   function iniciarTimer() {
-    intervalo = setInterval(() => {
-      expiraEm--;
+    let tempo = 600;
 
-      let m = Math.floor(expiraEm / 60);
-      let s = expiraEm % 60;
+    const t = setInterval(() => {
+      tempo--;
 
-      document.getElementById("timer").innerText = 
-        `Expira em: ${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const min = Math.floor(tempo / 60);
+      const seg = tempo % 60;
 
-      if (expiraEm <= 0) {
-        clearInterval(intervalo);
-        alert("O tempo expirou! Gere um novo PIX.");
-        window.location.href = "/";
+      document.getElementById("timer").innerText =
+        `Expira em ${min}:${seg < 10 ? "0" + seg : seg}`;
+
+      if (tempo <= 0) {
+        clearInterval(t);
+        localStorage.setItem("pagamento_status", "canceled");
+        window.location.href = "cancelado.html";
       }
 
     }, 1000);
   }
 
+  // 🔵 VERIFICAR STATUS DO PIX
   async function verificar(id) {
     const loop = setInterval(async () => {
       const r = await fetch(`/verificar/${id}`);
@@ -318,10 +316,9 @@
 
       if (data.status === "approved") {
         clearInterval(loop);
-        clearInterval(intervalo);
+        localStorage.setItem("pagamento_status", "approved");
         window.location.href = "/sucesso.html";
       }
-
     }, 4000);
   }
 </script>
