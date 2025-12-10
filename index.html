@@ -231,6 +231,16 @@
   </div>
 
 <script>
+  // Ao carregar o index normalmente, limpar status antigo
+window.addEventListener("load", () => {
+  const status = localStorage.getItem("statusPagamento");
+
+  // Se a pessoa veio direto para o site (não voltou do PIX), limpa tudo
+  if (performance.navigation.type === performance.navigation.TYPE_NAVIGATE) {
+    localStorage.removeItem("statusPagamento");
+  }
+});
+
   let qtd = 1;
   let timerInterval;
 
@@ -324,13 +334,16 @@
   }
 
   // 🔥 SE VOLTAR PARA O CHECKOUT COM PAGAMENTO PENDENTE → CANCELA
-  window.addEventListener("pageshow", () => {
-    const status = localStorage.getItem("statusPagamento");
-    if (status === "pendente") {
-      window.location.href = "/cancelado.html";
-    }
-  });
+  window.addEventListener("pageshow", (event) => {
+  // Só redireciona se realmente voltou do pagamento (event.persisted)
+  const status = localStorage.getItem("statusPagamento");
+
+  if (event.persisted && status === "pendente") {
+    window.location.href = "/cancelado.html";
+  }
+});
 </script>
 
 </body>
 </html>
+
