@@ -5,35 +5,35 @@ const fetch = require("node-fetch");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const path = require("path");
-const crypto = require("crypto");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Servir index
+// 🔵 Servir toda a pasta pública (HTML, CSS, JS, imagens)
+app.use(express.static(__dirname));
+
+// TOKEN MP
+const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
+
+// Google Planilha
+const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
+
+// 🔵 Rota inicial
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// TOKEN Mercado Pago
-const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
+// 🔵 Tela de sucesso
+app.get("/sucesso", (req, res) => {
+  res.sendFile(path.join(__dirname, "sucesso.html"));
+});
 
-// Sua planilha
-const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
-
-
-// ======================================================================
-// 🔵 CRIAR PAGAMENTO PIX
-// ======================================================================
+// 🔵 Criar pagamento PIX
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  // Anti erro do MP
-  const idempotency = crypto.randomUUID();
-
-  // Salva como pendente
+  // Salvar na planilha como pending
   await fetch(PLANILHA_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,13 +44,13 @@ app.post("/criar-pagamento", async (req, res) => {
     })
   });
 
-  // Criar PIX
-  const response = await fetch("https://api.mercadopago.com/v1/payments", {
+  // Criar pagamento PIX
+  const pagamento = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${TOKEN}`,
       "Content-Type": "application/json",
-      "X-Idempotency-Key": idempotency
+      "X-Idempotency-Key": `${Date.now()}-${Math.random()}`
     },
     body: JSON.stringify({
       transaction_amount: Number(data.valor),
@@ -64,24 +64,21 @@ app.post("/criar-pagamento", async (req, res) => {
     })
   });
 
-  const r = await response.json();
+  const r = await pagamento.json();
 
   if (r.error) {
-    console.log("ERRO PIX:", r);
-    return res.json({ erro: r.error });
+    console.log("ERRO MERCADO PAGO:", r);
+    return res.json({ erro: r });
   }
 
   return res.json({
     id: r.id,
-    qr: r.point_of_interaction.transaction_data.qr_code_base64,
-    code: r.point_of_interaction.transaction_data.qr_code
+    qr: r.point_of_interaction?.transaction_data?.qr_code_base64,
+    code: r.point_of_interaction?.transaction_data?.qr_code
   });
 });
 
-
-// ======================================================================
-// 🔵 CONSULTAR STATUS
-// ======================================================================
+// 🔵 Verificar pagamento
 app.get("/verificar/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -89,25 +86,22 @@ app.get("/verificar/:id", async (req, res) => {
     headers: { "Authorization": `Bearer ${TOKEN}` }
   });
 
-  const data = await r.json();
-
-  return res.json({ status: data.status });
+  const pag = await r.json();
+  return res.json({ status: pag.status });
 });
 
-
-// ======================================================================
-// 🔵 WEBHOOK (Mercado Pago → seu servidor)
-// ======================================================================
+// 🔵 Webhook Mercado Pago
 app.post("/notificacao", async (req, res) => {
   try {
     const id = req.body.data?.id;
     if (!id) return res.sendStatus(200);
 
-    const r = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
-      headers: { "Authorization": `Bearer ${TOKEN}` }
-    });
+    const mp = await fetch(
+      `https://api.mercadopago.com/v1/payments/${id}`,
+      { headers: { "Authorization": `Bearer ${TOKEN}` } }
+    );
 
-    const pag = await r.json();
+    const pag = await mp.json();
 
     if (pag.status === "approved") {
       await fetch(PLANILHA_URL, {
@@ -122,16 +116,14 @@ app.post("/notificacao", async (req, res) => {
         })
       });
     }
-  } catch (e) {
-    console.log("Erro webhook:", e);
+  } catch (error) {
+    console.log("Erro no webhook:", error);
   }
 
   res.sendStatus(200);
 });
 
-
-// ======================================================================
-// 🔵 INICIAR SERVIDOR
-// ======================================================================
+// 🔵 Iniciar servidor
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Rodando na porta " + PORT));
+app.listen(PORT, () => console.log("SERVIDOR RODANDO NA PORTA " + PORT));
+
