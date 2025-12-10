@@ -150,7 +150,6 @@
       display: none;
       text-align: center;
       margin-top: 20px;
-      animation: aparecer .4s ease-out;
     }
 
     #pixCopy {
@@ -171,6 +170,10 @@
       cursor: pointer;
       border: none;
       font-size: 14px;
+    }
+
+    #copyBtn:hover {
+      background: #1765cb;
     }
 
     #timer {
@@ -232,8 +235,14 @@
 
 <script>
   let qtd = 1;
-  let pagamentoAtivo = false;
   let timerInterval;
+  let pagamentoAtivo = false;
+
+  // LIMPA status ao entrar no site inicialmente
+  if (!sessionStorage.getItem("entrou")) {
+    localStorage.removeItem("statusPagamento");
+    sessionStorage.setItem("entrou", "1");
+  }
 
   function alterar(v) {
     qtd += v;
@@ -292,7 +301,6 @@
 
       if (data.status === "approved") {
         clearInterval(loop);
-        pagamentoAtivo = false;
         localStorage.setItem("statusPagamento", "aprovado");
         window.location.href = "/sucesso.html";
       }
@@ -319,9 +327,10 @@
     }, 1000);
   }
 
-  // Se voltar para o checkout → enviar para cancelado
+  // Se VOLTAR enquanto pagamento está pendente -> cancelar
   window.addEventListener("pageshow", () => {
     const status = localStorage.getItem("statusPagamento");
+
     if (status === "pendente") {
       window.location.href = "/cancelado.html";
     }
