@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pagamento Confirmado</title>
+
+    <!-- BLOQUEAR CACHE -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -64,6 +70,7 @@
     </style>
 </head>
 <body>
+
     <div class="card">
         <div class="check">✔</div>
         <h2>Pagamento Aprovado!</h2>
@@ -71,5 +78,18 @@
 
         <a class="btn" href="index.html">Voltar ao site</a>
     </div>
+
+<script>
+    // Impedir voltar para esta página sem pagamento
+    const pago = localStorage.getItem("pagamento_aprovado");
+
+    if (pago !== "true") {
+        window.location.href = "cancelado.html";
+    }
+
+    // Apaga status depois de exibir uma vez
+    localStorage.removeItem("pagamento_aprovado");
+</script>
+
 </body>
 </html>
