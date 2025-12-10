@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 // TOKEN MP
-const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
+const TOKEN = "";
 
 // Google Planilha
 const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
