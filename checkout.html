@@ -225,157 +225,106 @@
   </div>
 
 <script>
-/* =============================
-   🔹 CONTROLE DE STATUS
-============================= */
-window.addEventListener("load", () => {
-  const status = localStorage.getItem("statusPagamento");
-  if (performance.navigation.type === performance.navigation.TYPE_NAVIGATE) {
-    localStorage.removeItem("statusPagamento");
+// Ao carregar a página, pegar os dados do home (passados via URL)
+window.onload = function() {
+  const params = new URLSearchParams(window.location.search);
+
+  let qtd = parseInt(params.get("qtd")) || 1;
+  let valorTotal = parseFloat(params.get("valor")) || 0.20;
+  let valorUnitario = valorTotal / qtd; // Calculando valor unitário
+
+  // Atualiza os valores na tela
+  document.getElementById("qtd").innerText = qtd;
+  document.getElementById("total").innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
+
+  // Função para alterar a quantidade
+  function alterar(v) {
+    qtd += v;
+    if (qtd < 1) qtd = 1;
+    document.getElementById("qtd").innerText = qtd;
+    document.getElementById("total").innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
   }
-});
 
-const st = localStorage.getItem("statusPagamento");
-if (st === "cancelado" || st === "aprovado") {
-  localStorage.removeItem("statusPagamento");
-}
+  // Copiar código PIX
+  function copiar() {
+    navigator.clipboard.writeText(document.getElementById("pixCopy").innerText);
+    alert("Código copiado!");
+  }
 
-/* =============================
-   🔹 PEGAR DADOS DO HOME
-============================= */
-const params = new URLSearchParams(window.location.search);
+  // Submit do formulário de pagamento
+  document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-let qtd = parseInt(params.get("qtd")) || 1;
-let valorTotal = parseFloat(params.get("valor")) || 0.20;
+    const body = {
+      nome: nome.value,
+      cpf: cpf.value,
+      email: email.value,
+      nascimento: nascimento.value,
+      telefone: telefone.value,
+      quantidade: qtd,
+      valor: (qtd * valorUnitario).toFixed(2)
+    };
 
-// calcula valor unitário automaticamente
-let valorUnitario = valorTotal / qtd;
+    const req = await fetch("/criar-pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
 
-/* =============================
-   🔹 ELEMENTOS
-============================= */
-const qtdEl = document.getElementById("qtd");
-const totalEl = document.getElementById("total");
+    const res = await req.json();
 
-/* =============================
-   🔹 INICIALIZA
-============================= */
-atualizarTela();
+    if (res.erro) {
+      alert("Erro ao gerar o PIX");
+      return;
+    }
 
-/* =============================
-   🔹 FUNÇÕES
-============================= */
-function atualizarTela() {
-  qtdEl.innerText = qtd;
-  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
-}
+    document.getElementById("pixImg").src = "data:image/png;base64," + res.qr;
+    document.getElementById("pixCopy").innerText = res.code;
 
-function alterar(v) {
-  qtd += v;
-  if (qtd < 1) qtd = 1;
-  atualizarTela();
-}
+    document.getElementById("pixArea").style.display = "block";
+    document.getElementById("form").style.display = "none";
 
-function copiar() {
-  navigator.clipboard.writeText(
-    document.getElementById("pixCopy").innerText
-  );
-  alert("Código copiado!");
-}
-
-/* =============================
-   🔹 PAGAMENTO PIX
-============================= */
-let timerInterval;
-
-document.getElementById("form").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const body = {
-    nome: nome.value,
-    cpf: cpf.value,
-    email: email.value,
-    nascimento: nascimento.value,
-    telefone: telefone.value,
-    quantidade: qtd,
-    valor: (qtd * valorUnitario).toFixed(2)
-  };
-
-  const req = await fetch("/criar-pagamento", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    iniciarTimer();
+    verificar(res.id);
   });
 
-  const res = await req.json();
+  // Função de verificação de pagamento
+  async function verificar(id) {
+    const loop = setInterval(async () => {
+      const r = await fetch(`/verificar/${id}`);
+      const data = await r.json();
 
-  if (res.erro) {
-    alert("Erro ao gerar o PIX");
-    return;
+      if (data.status === "approved") {
+        clearInterval(loop);
+        localStorage.setItem("statusPagamento", "aprovado");
+        window.location.href = "/sucesso.html";
+      }
+    }, 4000);
   }
 
-  localStorage.setItem("statusPagamento", "pendente");
+  // Função de timer de expiração
+  let timerInterval;
+  function iniciarTimer() {
+    let tempo = 600; // 10 minutos
 
-  document.getElementById("pixImg").src =
-    "data:image/png;base64," + res.qr;
-  document.getElementById("pixCopy").innerText = res.code;
+    timerInterval = setInterval(() => {
+      const min = Math.floor(tempo / 60);
+      const sec = tempo % 60;
 
-  document.getElementById("pixArea").style.display = "block";
-  document.getElementById("form").style.display = "none";
+      document.getElementById("timer").innerText =
+        `Expira em ${min}:${sec < 10 ? '0' : ''}${sec}`;
 
-  iniciarTimer();
-  verificar(res.id);
-});
+      tempo--;
 
-/* =============================
-   🔹 VERIFICAÇÃO
-============================= */
-async function verificar(id) {
-  const loop = setInterval(async () => {
-    const r = await fetch(`/verificar/${id}`);
-    const data = await r.json();
-
-    if (data.status === "approved") {
-      clearInterval(loop);
-      localStorage.setItem("statusPagamento", "aprovado");
-      window.location.href = "/sucesso.html";
-    }
-  }, 4000);
-}
-
-/* =============================
-   🔹 TIMER
-============================= */
-function iniciarTimer() {
-  let tempo = 600;
-
-  timerInterval = setInterval(() => {
-    const min = Math.floor(tempo / 60);
-    const sec = tempo % 60;
-
-    document.getElementById("timer").innerText =
-      `Expira em ${min}:${sec < 10 ? "0" : ""}${sec}`;
-
-    tempo--;
-
-    if (tempo < 0) {
-      clearInterval(timerInterval);
-      localStorage.setItem("statusPagamento", "cancelado");
-      window.location.href = "/cancelado.html";
-    }
-  }, 1000);
-}
-
-/* =============================
-   🔹 VOLTAR DO PIX
-============================= */
-window.addEventListener("pageshow", (event) => {
-  const status = localStorage.getItem("statusPagamento");
-  if (event.persisted && status === "pendente") {
-    window.location.href = "/cancelado.html";
+      if (tempo < 0) {
+        clearInterval(timerInterval);
+        localStorage.setItem("statusPagamento", "cancelado");
+        window.location.href = "/cancelado.html";
+      }
+    }, 1000);
   }
-});
+};
 </script>
+
 </body>
 </html>
-
