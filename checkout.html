@@ -241,17 +241,15 @@ if (st === "cancelado" || st === "aprovado") {
 }
 
 /* =============================
-   🔹 RECEBE DADOS DO HOME
+   🔹 PEGAR DADOS DO HOME (CORRETO)
 ============================= */
 const params = new URLSearchParams(window.location.search);
 
-// quantidade vinda do home
-let qtd = parseInt(params.get("qtd")) || 1;
+// 👇 AGORA FUNCIONA DE VERDADE
+let qtd = Number(params.get("qtd")) || 1;
+let valorTotal = Number(params.get("valor")) || 1.99;
 
-// valor total vindo do home
-let valorTotal = parseFloat(params.get("valor")) || 1.99;
-
-// valor unitário calculado automaticamente
+// valor unitário real
 let valorUnitario = valorTotal / qtd;
 
 /* =============================
@@ -266,7 +264,7 @@ const totalEl = document.getElementById("total");
 atualizarTela();
 
 /* =============================
-   🔹 FUNÇÕES
+   🔹 FUNÇÕES DE QTD
 ============================= */
 function atualizarTela() {
   qtdEl.innerText = qtd;
@@ -287,7 +285,7 @@ function copiar() {
 }
 
 /* =============================
-   🔹 PAGAMENTO PIX
+   🔹 PAGAMENTO PIX (MANTIDO)
 ============================= */
 let timerInterval;
 
@@ -321,7 +319,6 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 
   document.getElementById("pixImg").src =
     "data:image/png;base64," + res.qr;
-
   document.getElementById("pixCopy").innerText = res.code;
 
   document.getElementById("pixArea").style.display = "block";
@@ -332,7 +329,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 });
 
 /* =============================
-   🔹 VERIFICA PAGAMENTO
+   🔹 VERIFICAÇÃO
 ============================= */
 async function verificar(id) {
   const loop = setInterval(async () => {
@@ -348,7 +345,7 @@ async function verificar(id) {
 }
 
 /* =============================
-   🔹 TIMER EXPIRAÇÃO
+   🔹 TIMER
 ============================= */
 function iniciarTimer() {
   let tempo = 600;
@@ -371,7 +368,7 @@ function iniciarTimer() {
 }
 
 /* =============================
-   🔹 VOLTOU DO PIX SEM PAGAR
+   🔹 VOLTAR DO PIX
 ============================= */
 window.addEventListener("pageshow", (event) => {
   const status = localStorage.getItem("statusPagamento");
@@ -382,8 +379,10 @@ window.addEventListener("pageshow", (event) => {
 </script>
 
 
+
 </body>
 </html>
+
 
 
 
