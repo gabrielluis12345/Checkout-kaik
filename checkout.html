@@ -244,16 +244,12 @@ if (st === "cancelado" || st === "aprovado") {
 ============================= */
 const params = new URLSearchParams(window.location.search);
 
-// QTD vinda do home
-let qtd = Number(params.get("qtd")) || 1;
+// valores vindos do HOME
+let qtd = parseInt(params.get("qtd")) || 1;
+let valorTotal = parseFloat(params.get("valor")) || 1.99;
 
-// VALOR TOTAL vindo do home
-let valorTotalHome = Number(params.get("valor")) || 0;
-
-// VALOR UNITÁRIO REAL
-let valorUnitario = valorTotalHome > 0
-  ? valorTotalHome / qtd
-  : 0.20;
+// calcula valor unitário REAL
+let valorUnitario = valorTotal / qtd;
 
 /* =============================
    🔹 ELEMENTOS
@@ -262,28 +258,24 @@ const qtdEl = document.getElementById("qtd");
 const totalEl = document.getElementById("total");
 
 /* =============================
-   🔹 ATUALIZA TELA
+   🔹 INICIALIZA
 ============================= */
-function atualizarTela() {
-  qtdEl.innerText = qtd;
-  totalEl.innerText =
-    "R$ " + (qtd * valorUnitario).toFixed(2).replace(".", ",");
-}
-
 atualizarTela();
 
 /* =============================
-   🔹 BOTÕES + E -
+   🔹 FUNÇÕES
 ============================= */
+function atualizarTela() {
+  qtdEl.innerText = qtd;
+  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
+}
+
 function alterar(v) {
   qtd += v;
   if (qtd < 1) qtd = 1;
   atualizarTela();
 }
 
-/* =============================
-   🔹 COPIAR PIX
-============================= */
 function copiar() {
   navigator.clipboard.writeText(
     document.getElementById("pixCopy").innerText
@@ -336,7 +328,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 });
 
 /* =============================
-   🔹 VERIFICAR PAGAMENTO
+   🔹 VERIFICAÇÃO
 ============================= */
 async function verificar(id) {
   const loop = setInterval(async () => {
@@ -352,7 +344,7 @@ async function verificar(id) {
 }
 
 /* =============================
-   🔹 TIMER EXPIRAÇÃO
+   🔹 TIMER
 ============================= */
 function iniciarTimer() {
   let tempo = 600;
@@ -387,7 +379,9 @@ window.addEventListener("pageshow", (event) => {
 
 
 
+
 </body>
 </html>
+
 
 
