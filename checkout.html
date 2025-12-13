@@ -244,11 +244,16 @@ if (st === "cancelado" || st === "aprovado") {
 ============================= */
 const params = new URLSearchParams(window.location.search);
 
-let qtd = parseInt(params.get("qtd")) || 1;
-let valorTotalInicial = parseFloat(params.get("valor")) || 0.20;
+// QTD vinda do home
+let qtd = Number(params.get("qtd")) || 1;
 
-// 🔥 VALOR UNITÁRIO FIXO (ESSENCIAL)
-const valorUnitario = Number((valorTotalInicial / qtd).toFixed(2));
+// VALOR TOTAL vindo do home
+let valorTotalHome = Number(params.get("valor")) || 0;
+
+// VALOR UNITÁRIO REAL
+let valorUnitario = valorTotalHome > 0
+  ? valorTotalHome / qtd
+  : 0.20;
 
 /* =============================
    🔹 ELEMENTOS
@@ -261,14 +266,14 @@ const totalEl = document.getElementById("total");
 ============================= */
 function atualizarTela() {
   qtdEl.innerText = qtd;
-  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
+  totalEl.innerText =
+    "R$ " + (qtd * valorUnitario).toFixed(2).replace(".", ",");
 }
 
-// inicia com dados do HOME
 atualizarTela();
 
 /* =============================
-   🔹 BOTÕES + / −
+   🔹 BOTÕES + E -
 ============================= */
 function alterar(v) {
   qtd += v;
@@ -331,7 +336,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 });
 
 /* =============================
-   🔹 VERIFICA STATUS
+   🔹 VERIFICAR PAGAMENTO
 ============================= */
 async function verificar(id) {
   const loop = setInterval(async () => {
@@ -370,7 +375,7 @@ function iniciarTimer() {
 }
 
 /* =============================
-   🔹 VOLTOU SEM PAGAR
+   🔹 VOLTAR DO PIX
 ============================= */
 window.addEventListener("pageshow", (event) => {
   const status = localStorage.getItem("statusPagamento");
@@ -381,6 +386,8 @@ window.addEventListener("pageshow", (event) => {
 </script>
 
 
+
 </body>
 </html>
+
 
