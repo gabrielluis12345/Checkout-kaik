@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Viva Sorte+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --azul: #2f4db7;
+      --verde: #43b02a;
+      --cinza: #f4f6fa;
+      --radius: 16px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #fff;
+    }
+
+    /* HEADER */
+    header {
+      padding: 15px 25px;
+      border-bottom: 1px solid #eee;
+    }
+
+    header img {
+      height: 40px;
+    }
+
+    /* CONTAINER */
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 30px;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 30px;
+    }
+
+    /* IMAGEM */
+    .banner {
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 24px;
+      padding: 30px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .banner img {
+      width: 100%;
+      border-radius: 20px;
+    }
+
+    /* CARD */
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .card small {
+      color: #666;
+    }
+
+    /* QTD */
+    .qtd-box {
+      background: var(--azul);
+      color: #fff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px;
+      margin: 20px 0;
+    }
+
+    .qtd-box button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #fff;
+      color: var(--azul);
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .qtd {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    /* TOTAL */
+    .total {
+      font-size: 26px;
+      font-weight: bold;
+      color: var(--azul);
+      margin-bottom: 20px;
+    }
+
+    /* BOTAO */
+    .comprar {
+      width: 100%;
+      padding: 16px;
+      background: var(--verde);
+      color: #fff;
+      font-size: 18px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .comprar:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <!-- LOGO -->
+  <img src="logo.png" alt="Viva Sorte">
+</header>
+
+<div class="container">
+
+  <!-- BANNER -->
+  <div class="banner">
+    <img src="banner.png" alt="Promoção Viva Sorte">
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <h2>Viva Sorte+ - 14/12/2025</h2>
+    <small>Dom, 14 Dez | 2025</small>
+
+    <div class="qtd-box">
+      <button onclick="alterar(-1)">−</button>
+      <span class="qtd" id="qtd">10</span>
+      <button onclick="alterar(1)">+</button>
+    </div>
+
+    <div class="total" id="total">R$ 19,90</div>
+
+    <button class="comprar" onclick="comprar()">
+      🛒 Comprar
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const valorUnitario = 1.99;
+  let qtd = 10;
+
+  function alterar(v) {
+    qtd += v;
+    if (qtd < 1) qtd = 1;
+
+    document.getElementById("qtd").innerText = qtd;
+    atualizarTotal();
+  }
+
+  function atualizarTotal() {
+    const total = (qtd * valorUnitario).toFixed(2).replace(".", ",");
+    document.getElementById("total").innerText = "R$ " + total;
+  }
+
+  function comprar() {
+    const valor = (qtd * valorUnitario).toFixed(2);
+    window.location.href = `/index.html?qtd=${qtd}&valor=${valor}`;
+  }
+</script>
+
+</body>
+</html>
