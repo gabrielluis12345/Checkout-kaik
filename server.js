@@ -10,30 +10,51 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// 🔵 Servir toda a pasta pública (HTML, CSS, JS, imagens)
+// 🔵 Servir arquivos estáticos
 app.use(express.static(__dirname));
 
-// TOKEN MP
+// TOKEN MERCADO PAGO
 const TOKEN = "";
 
 // Google Planilha
-const PLANILHA_URL = "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
+const PLANILHA_URL =
+  "https://script.google.com/macros/s/AKfycbzoY1EQg1_94KDH_iV03i0j04ICjxmHK-bks2AuxTE2ujJA8ygp8JKbnvHTOhQ9IaQolQ/exec";
 
-// 🔵 Rota inicial
+// ===============================
+// 🏠 HOME
+// ===============================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// 🔵 Tela de sucesso
+// ===============================
+// 🧾 CHECKOUT
+// ===============================
+app.get("/checkout", (req, res) => {
+  res.sendFile(path.join(__dirname, "checkout.html"));
+});
+
+// ===============================
+// ✅ SUCESSO
+// ===============================
 app.get("/sucesso", (req, res) => {
   res.sendFile(path.join(__dirname, "sucesso.html"));
 });
 
-// 🔵 Criar pagamento PIX
+// ===============================
+// ❌ CANCELADO
+// ===============================
+app.get("/cancelado", (req, res) => {
+  res.sendFile(path.join(__dirname, "cancelado.html"));
+});
+
+// ===============================
+// 💳 CRIAR PAGAMENTO PIX
+// ===============================
 app.post("/criar-pagamento", async (req, res) => {
   const data = req.body;
 
-  // Salvar na planilha como pending
+  // Salva como pendente na planilha
   await fetch(PLANILHA_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -44,11 +65,11 @@ app.post("/criar-pagamento", async (req, res) => {
     })
   });
 
-  // Criar pagamento PIX
+  // Cria pagamento PIX
   const pagamento = await fetch("https://api.mercadopago.com/v1/payments", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${TOKEN}`,
+      Authorization: `Bearer ${TOKEN}`,
       "Content-Type": "application/json",
       "X-Idempotency-Key": `${Date.now()}-${Math.random()}`
     },
@@ -56,7 +77,8 @@ app.post("/criar-pagamento", async (req, res) => {
       transaction_amount: Number(data.valor),
       description: "Rifa Viva Sorte",
       payment_method_id: "pix",
-      notification_url: "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
+      notification_url:
+        "https://checkout-kaik-production-4bce.up.railway.app/notificacao",
       payer: {
         email: data.email,
         first_name: data.nome
@@ -71,26 +93,33 @@ app.post("/criar-pagamento", async (req, res) => {
     return res.json({ erro: r });
   }
 
-  return res.json({
+  res.json({
     id: r.id,
-    qr: r.point_of_interaction?.transaction_data?.qr_code_base64,
-    code: r.point_of_interaction?.transaction_data?.qr_code
+    qr: r.point_of_interaction.transaction_data.qr_code_base64,
+    code: r.point_of_interaction.transaction_data.qr_code
   });
 });
 
-// 🔵 Verificar pagamento
+// ===============================
+// 🔍 VERIFICAR PAGAMENTO
+// ===============================
 app.get("/verificar/:id", async (req, res) => {
   const id = req.params.id;
 
-  const r = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
-    headers: { "Authorization": `Bearer ${TOKEN}` }
-  });
+  const r = await fetch(
+    `https://api.mercadopago.com/v1/payments/${id}`,
+    {
+      headers: { Authorization: `Bearer ${TOKEN}` }
+    }
+  );
 
   const pag = await r.json();
-  return res.json({ status: pag.status });
+  res.json({ status: pag.status });
 });
 
-// 🔵 Webhook Mercado Pago
+// ===============================
+// 🔔 WEBHOOK
+// ===============================
 app.post("/notificacao", async (req, res) => {
   try {
     const id = req.body.data?.id;
@@ -98,7 +127,7 @@ app.post("/notificacao", async (req, res) => {
 
     const mp = await fetch(
       `https://api.mercadopago.com/v1/payments/${id}`,
-      { headers: { "Authorization": `Bearer ${TOKEN}` } }
+      { headers: { Authorization: `Bearer ${TOKEN}` } }
     );
 
     const pag = await mp.json();
@@ -116,14 +145,16 @@ app.post("/notificacao", async (req, res) => {
         })
       });
     }
-  } catch (error) {
-    console.log("Erro no webhook:", error);
+  } catch (e) {
+    console.log("Erro webhook:", e);
   }
 
   res.sendStatus(200);
 });
 
-// 🔵 Iniciar servidor
+// ===============================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("SERVIDOR RODANDO NA PORTA " + PORT));
+app.listen(PORT, () =>
+  console.log("🚀 Servidor rodando na porta " + PORT)
+);
 
