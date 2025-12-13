@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Checkout - Produto</title>
-  <style>
+  <title>Checkout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- mantém seus estilos -->
+   <style>
     /* Estilos já fornecidos */
     :root {
       --azul: #1A73E8;
@@ -184,95 +187,121 @@
 </head>
 <body>
 
-  <div class="container">
-    <img src="logo.png" alt="Logo" class="logo">
-    <h2>Finalizar Pedido</h2>
+<div class="container">
 
-    <div class="produto">
-      <img src="product.jpg" alt="Produto">
-      <div>
-        <div class="produto-title">Rifa do Milhão Viva Sorte</div>
-        <small>Valor unitário: <b>R$ 0,20</b></small>
-      </div>
-    </div>
+  <img src="logo.png" class="logo">
 
-    <div class="qty-box">
-      <button onclick="alterar(-1)">−</button>
-      <span id="qtd">1</span>
-      <button onclick="alterar(1)">+</button>
-    </div>
+  <h2>Finalizar Pedido</h2>
 
-    <span id="total">R$ 0,20</span>
-
-    <form id="form">
-      <input type="text" id="nome" name="nome" placeholder="Nome completo" required>
-      <input type="text" id="cpf" name="cpf" placeholder="CPF" required>
-      <input type="email" id="email" name="email" placeholder="E-mail" required>
-      <input type="date" id="nascimento" name="nascimento" required>
-      <input type="text" id="telefone" name="telefone" placeholder="Telefone" required>
-
-      <button class="pagar" type="submit">Pagar com PIX</button>
-    </form>
-
-    <div id="pixArea">
-      <h3>Escaneie o QR Code</h3>
-      <img id="pixImg" width="240">
-      <p id="pixCopy"></p>
-      <button id="copyBtn" onclick="copiar()">Copiar código PIX</button>
-      <p id="timer"></p>
-      <p style="color: var(--cinza);">Aguardando pagamento...</p>
+  <div class="produto">
+    <div>
+      <strong>Rifa Viva Sorte</strong><br>
+      <small>Valor unitário</small>
     </div>
   </div>
 
-<script>
-  // Ao carregar a página, pegar os dados do localStorage
-  window.onload = function() {
-    const qtd = localStorage.getItem("qtd");
-    const valor = localStorage.getItem("valor");
+  <!-- CONTROLE DE QUANTIDADE -->
+  <div class="qty-box">
+    <button onclick="alterarQtd(-1)">−</button>
+    <span id="qtd">1</span>
+    <button onclick="alterarQtd(1)">+</button>
+  </div>
 
-    if (qtd && valor) {
-      // Atualiza os valores no checkout
-      document.getElementById("qtd").innerText = qtd;
-      document.getElementById("total").innerText = "R$ " + valor;
-    } else {
-      alert("Erro: Não foi possível carregar os dados.");
+  <h3 id="total">R$ 0,00</h3>
+
+  <!-- FORMULÁRIO -->
+  <form id="form">
+    <input type="text" id="nome" placeholder="Nome completo" required>
+    <input type="email" id="email" placeholder="E-mail" required>
+
+    <button type="submit" class="pagar">Pagar com PIX</button>
+  </form>
+
+  <!-- ÁREA PIX -->
+  <div id="pixArea" style="display:none;">
+    <img id="pixImg" width="240">
+    <p id="pixCopy"></p>
+
+    <button onclick="copiar()">Copiar código PIX</button>
+    <p id="timer"></p>
+  </div>
+
+</div>
+
+<script>
+  let qtd = 1;
+  let valorUnitario = 0;
+
+  // 🔵 CARREGA DADOS DA HOME
+  window.onload = () => {
+    const qtdStorage = localStorage.getItem("qtd");
+    const valorStorage = localStorage.getItem("valor");
+
+    if (!qtdStorage || !valorStorage) {
       window.location.href = "/";
+      return;
     }
+
+    qtd = Number(qtdStorage);
+    const total = Number(valorStorage);
+
+    valorUnitario = total / qtd;
+
+    atualizarTela();
   };
 
-  function copiar() {
-    navigator.clipboard.writeText(document.getElementById("pixCopy").innerText);
-    alert("Código copiado!");
+  // 🔵 ATUALIZA TELA
+  function atualizarTela() {
+    document.getElementById("qtd").innerText = qtd;
+    document.getElementById("total").innerText =
+      "R$ " + (qtd * valorUnitario).toFixed(2).replace(".", ",");
   }
 
+  // 🔵 ALTERAR QUANTIDADE
+  function alterarQtd(valor) {
+    qtd += valor;
+    if (qtd < 1) qtd = 1;
+
+    atualizarTela();
+  }
+
+  // 🔵 COPIAR PIX
+  function copiar() {
+    navigator.clipboard.writeText(
+      document.getElementById("pixCopy").innerText
+    );
+    alert("Código PIX copiado!");
+  }
+
+  // 🔵 GERAR PIX
   document.getElementById("form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const body = {
-      nome: nome.value,
-      cpf: cpf.value,
-      email: email.value,
-      nascimento: nascimento.value,
-      telefone: telefone.value,
-      quantidade: document.getElementById("qtd").innerText,
-      valor: document.getElementById("total").innerText.replace("R$ ", "")
-    };
+    const valorFinal = (qtd * valorUnitario).toFixed(2);
 
     const req = await fetch("/criar-pagamento", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(body)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nome: nome.value,
+        email: email.value,
+        quantidade: qtd,
+        valor: valorFinal
+      })
     });
 
     const res = await req.json();
 
     if (res.erro) {
-      alert("Erro ao gerar o PIX: " + res.erro);
+      alert("Erro ao gerar PIX");
       return;
     }
 
-    document.getElementById("pixImg").src = "data:image/png;base64," + res.qr;
+    document.getElementById("pixImg").src =
+      "data:image/png;base64," + res.qr;
+
     document.getElementById("pixCopy").innerText = res.code;
+
     document.getElementById("pixArea").style.display = "block";
     document.getElementById("form").style.display = "none";
   });
