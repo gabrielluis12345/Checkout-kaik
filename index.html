@@ -179,18 +179,20 @@
     document.getElementById("total").innerText = "R$ " + total;
   }
 
-  function comprar() {
-    const valor = (qtd * valorUnitario).toFixed(2);
+ <script>
+function comprar() {
+  const valor = (qtd * valorUnitario).toFixed(2);
 
-    // Usando o localStorage para salvar os dados
-    localStorage.setItem("qtd", qtd);
-    localStorage.setItem("valor", valor);
+  // garante que os valores são enviados corretamente
+  window.location.href =
+    "/checkout.html?qtd=" + encodeURIComponent(qtd) +
+    "&valor=" + encodeURIComponent(valor);
+}
+</script>
 
-    // Redirecionando para o checkout
-    window.location.href = "/checkout";
-  }
 </script>
 
 </body>
 </html>
+
 
