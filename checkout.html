@@ -226,7 +226,7 @@
 
 <script>
 /* =============================
-   🔹 LIMPA STATUS ANTIGO
+   🔹 STATUS
 ============================= */
 const st = localStorage.getItem("statusPagamento");
 if (st === "cancelado" || st === "aprovado") {
@@ -234,19 +234,17 @@ if (st === "cancelado" || st === "aprovado") {
 }
 
 /* =============================
-   🔹 PEGAR DADOS DO HOME
+   🔹 DADOS DO HOME
 ============================= */
-function atualizarTela() {
-  qtdEl.innerText = qtd;
-  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
-}
+const params = new URLSearchParams(window.location.search);
 
-function alterar(v) {
-  qtd += v;
-  if (qtd < 1) qtd = 1;
-  atualizarTela();
-}
+let quantidade = parseInt(params.get("qtd"), 10);
+let valorTotal = parseFloat(params.get("valor"));
 
+if (!quantidade || quantidade < 1) quantidade = 1;
+if (!valorTotal || valorTotal <= 0) valorTotal = 1.99;
+
+const valorUnitario = valorTotal / quantidade;
 
 /* =============================
    🔹 ELEMENTOS
@@ -255,24 +253,25 @@ const qtdEl = document.getElementById("qtd");
 const totalEl = document.getElementById("total");
 
 /* =============================
-   🔹 INICIALIZA TELA
-============================= */
-atualizarTela();
-
-/* =============================
-   🔹 FUNÇÕES
+   🔹 TELA
 ============================= */
 function atualizarTela() {
-  qtdEl.innerText = qtd;
-  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
+  qtdEl.innerText = quantidade;
+  totalEl.innerText =
+    "R$ " + (quantidade * valorUnitario).toFixed(2);
 }
 
 function alterar(v) {
-  qtd += v;
-  if (qtd < 1) qtd = 1;
+  quantidade += v;
+  if (quantidade < 1) quantidade = 1;
   atualizarTela();
 }
 
+atualizarTela();
+
+/* =============================
+   🔹 COPIAR PIX
+============================= */
 function copiar() {
   navigator.clipboard.writeText(
     document.getElementById("pixCopy").innerText
@@ -281,7 +280,7 @@ function copiar() {
 }
 
 /* =============================
-   🔹 PAGAMENTO PIX
+   🔹 PAGAMENTO
 ============================= */
 let timerInterval;
 
@@ -294,8 +293,8 @@ document.getElementById("form").addEventListener("submit", async (e) => {
     email: email.value,
     nascimento: nascimento.value,
     telefone: telefone.value,
-    quantidade: qtd,
-    valor: (qtd * valorUnitario).toFixed(2)
+    quantidade: quantidade,
+    valor: (quantidade * valorUnitario).toFixed(2)
   };
 
   const req = await fetch("/criar-pagamento", {
@@ -364,7 +363,7 @@ function iniciarTimer() {
 }
 
 /* =============================
-   🔹 VOLTOU DO PIX
+   🔹 VOLTAR
 ============================= */
 window.addEventListener("pageshow", (event) => {
   const status = localStorage.getItem("statusPagamento");
@@ -377,8 +376,10 @@ window.addEventListener("pageshow", (event) => {
 
 
 
+
 </body>
 </html>
+
 
 
 
