@@ -236,17 +236,17 @@ if (st === "cancelado" || st === "aprovado") {
 /* =============================
    🔹 PEGAR DADOS DO HOME
 ============================= */
-const params = new URLSearchParams(window.location.search);
+function atualizarTela() {
+  qtdEl.innerText = qtd;
+  totalEl.innerText = "R$ " + (qtd * valorUnitario).toFixed(2);
+}
 
-let qtd = parseInt(params.get("qtd"), 10);
-let valorTotal = parseFloat(params.get("valor"));
+function alterar(v) {
+  qtd += v;
+  if (qtd < 1) qtd = 1;
+  atualizarTela();
+}
 
-/* fallback de segurança */
-if (!qtd || qtd < 1) qtd = 1;
-if (!valorTotal || valorTotal <= 0) valorTotal = 1.99;
-
-/* calcula valor unitário corretamente */
-const valorUnitario = valorTotal / qtd;
 
 /* =============================
    🔹 ELEMENTOS
@@ -379,6 +379,7 @@ window.addEventListener("pageshow", (event) => {
 
 </body>
 </html>
+
 
 
 
