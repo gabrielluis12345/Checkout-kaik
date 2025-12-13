@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 app.use(express.static(__dirname));
 
 // TOKEN MERCADO PAGO
-const TOKEN = "";
+const TOKEN = "APP_USR-5555886528536836-120817-65519b58bbfe00e9d566f1e1c795ac69-749376790";
 
 // Google Planilha
 const PLANILHA_URL =
