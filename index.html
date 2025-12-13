@@ -137,6 +137,87 @@
       opacity: 0.9;
     }
 
+    .institucional {
+  max-width: 1100px;
+  margin: 80px auto;
+  padding: 0 20px;
+  text-align: center;
+}
+
+.institucional h3 {
+  color: #2b3cff;
+  font-size: 20px;
+  margin-bottom: 30px;
+}
+
+.instituicao-logo {
+  max-width: 220px;
+  margin-bottom: 25px;
+}
+
+.institucional h4 {
+  font-size: 18px;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.institucional p {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #555;
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+}
+
+    .rodape {
+  background: #fff;
+  padding: 40px 20px;
+  border-top: 1px solid #eee;
+  margin-top: 60px;
+}
+
+.rodape-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1100px;
+  margin: auto;
+  flex-wrap: wrap;
+}
+
+.logo-footer {
+  height: 35px;
+}
+
+.social a {
+  margin-right: 12px;
+  font-size: 14px;
+  color: #2b3cff;
+  text-decoration: none;
+}
+
+.texto-legal {
+  max-width: 1100px;
+  margin: 30px auto;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.rodape-logos {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.rodape-logos img {
+  height: 35px;
+  margin: 10px;
+}
+
+
     @media (max-width: 900px) {
       .container {
         grid-template-columns: 1fr;
@@ -181,6 +262,53 @@
     <button class="comprar" onclick="comprar()">🛒 Comprar</button>
   </div>
 
+  <section class="institucional">
+  <h3>Instituição beneficiada</h3>
+
+  <img src="hospital.png" alt="Hospital do Câncer de Londrina" class="instituicao-logo">
+
+  <h4>Conheça a história do Hospital do Câncer de Londrina</h4>
+
+  <p>
+    O Hospital do Câncer de Londrina foi idealizado pela ilustre Lucilla Pinto Ballalai e criado
+    em 08 de novembro de 1965. A iniciativa foi desenvolvida em prol do tratamento do câncer
+    e da valorização da qualidade de vida, com aprimoramento constante de recursos humanos,
+    científicos e tecnológicos.
+  </p>
+
+  <p>
+    O Centro Norte Paranaense de Pesquisas Médicas, como era chamado o Hospital do Câncer de
+    Londrina na sua fundação, era destinado inicialmente à prevenção do tumor de colo de útero
+    feminino para as moradoras de Londrina e região.
+  </p>
+</section>
+
+  <footer class="rodape">
+  <div class="rodape-top">
+    <img src="vivasorte.png" class="logo-footer">
+
+    <div class="social">
+      <a href="#">Instagram</a>
+      <a href="#">Facebook</a>
+      <a href="#">Twitter</a>
+      <a href="#">YouTube</a>
+    </div>
+  </div>
+
+  <p class="texto-legal">
+    VIVA SORTE DO DIA E HORA DO VIVA são títulos de capitalização da modalidade filantropia premiável
+    de pagamento único emitido pela VIA CAPITALIZAÇÃO S/A...
+  </p>
+
+  <div class="rodape-logos">
+    <img src="viacap.png">
+    <img src="hospital.png">
+    <img src="edj.png">
+    <img src="google-safe.png">
+  </div>
+</footer>
+
+
 </div>
 
 <script>
@@ -214,6 +342,7 @@
 
 </body>
 </html>
+
 
 
 
