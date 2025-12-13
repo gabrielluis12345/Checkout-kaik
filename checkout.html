@@ -228,29 +228,25 @@
 /* =============================
    🔹 LIMPA STATUS ANTIGO
 ============================= */
-window.addEventListener("load", () => {
-  const status = localStorage.getItem("statusPagamento");
-  if (performance.navigation.type === performance.navigation.TYPE_NAVIGATE) {
-    localStorage.removeItem("statusPagamento");
-  }
-});
-
 const st = localStorage.getItem("statusPagamento");
 if (st === "cancelado" || st === "aprovado") {
   localStorage.removeItem("statusPagamento");
 }
 
 /* =============================
-   🔹 PEGAR DADOS DO HOME (CORRETO)
+   🔹 PEGAR DADOS DO HOME
 ============================= */
 const params = new URLSearchParams(window.location.search);
 
-// 👇 AGORA FUNCIONA DE VERDADE
-let qtd = Number(params.get("qtd")) || 1;
-let valorTotal = Number(params.get("valor")) || 1.99;
+let qtd = parseInt(params.get("qtd"), 10);
+let valorTotal = parseFloat(params.get("valor"));
 
-// valor unitário real
-let valorUnitario = valorTotal / qtd;
+/* fallback de segurança */
+if (!qtd || qtd < 1) qtd = 1;
+if (!valorTotal || valorTotal <= 0) valorTotal = 1.99;
+
+/* calcula valor unitário corretamente */
+const valorUnitario = valorTotal / qtd;
 
 /* =============================
    🔹 ELEMENTOS
@@ -264,7 +260,7 @@ const totalEl = document.getElementById("total");
 atualizarTela();
 
 /* =============================
-   🔹 FUNÇÕES DE QTD
+   🔹 FUNÇÕES
 ============================= */
 function atualizarTela() {
   qtdEl.innerText = qtd;
@@ -285,7 +281,7 @@ function copiar() {
 }
 
 /* =============================
-   🔹 PAGAMENTO PIX (MANTIDO)
+   🔹 PAGAMENTO PIX
 ============================= */
 let timerInterval;
 
@@ -368,7 +364,7 @@ function iniciarTimer() {
 }
 
 /* =============================
-   🔹 VOLTAR DO PIX
+   🔹 VOLTOU DO PIX
 ============================= */
 window.addEventListener("pageshow", (event) => {
   const status = localStorage.getItem("statusPagamento");
@@ -380,8 +376,10 @@ window.addEventListener("pageshow", (event) => {
 
 
 
+
 </body>
 </html>
+
 
 
 
