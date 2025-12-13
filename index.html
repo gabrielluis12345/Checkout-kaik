@@ -164,42 +164,37 @@
 </div>
 
 <script>
-  // 🔹 CONFIGURAÇÃO
   const valorUnitario = 1.99;
-  let qtd = 10;
+  let quantidade = 10;
 
-  // 🔹 ELEMENTOS
   const qtdEl = document.getElementById("qtd");
   const totalEl = document.getElementById("total");
 
-  // 🔹 INICIALIZA
-  atualizarTotal();
-
-  // 🔹 FUNÇÕES
-  function alterar(valor) {
-    qtd += valor;
-    if (qtd < 1) qtd = 1;
-
-    qtdEl.innerText = qtd;
-    atualizarTotal();
+  function atualizarTela() {
+    qtdEl.innerText = quantidade;
+    totalEl.innerText =
+      "R$ " + (quantidade * valorUnitario).toFixed(2).replace(".", ",");
   }
 
-  function atualizarTotal() {
-    const total = (qtd * valorUnitario).toFixed(2).replace(".", ",");
-    totalEl.innerText = "R$ " + total;
+  function alterar(v) {
+    quantidade += v;
+    if (quantidade < 1) quantidade = 1;
+    atualizarTela();
   }
 
   function comprar() {
-    const valorTotal = (qtd * valorUnitario).toFixed(2);
-
-    // 👉 REDIRECIONA COM QTD E VALOR
-    window.location.href = `/checkout.html?qtd=${qtd}&valor=${valorTotal}`;
+    const valor = (quantidade * valorUnitario).toFixed(2);
+    window.location.href = `/checkout.html?qtd=${quantidade}&valor=${valor}`;
   }
+
+  atualizarTela();
 </script>
+
 
 
 </body>
 </html>
+
 
 
 
