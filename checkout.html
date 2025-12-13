@@ -226,9 +226,10 @@
 
 <script>
 /* =============================
-   🔹 CONTROLE DE STATUS
+   🔹 LIMPA STATUS ANTIGO
 ============================= */
 window.addEventListener("load", () => {
+  const status = localStorage.getItem("statusPagamento");
   if (performance.navigation.type === performance.navigation.TYPE_NAVIGATE) {
     localStorage.removeItem("statusPagamento");
   }
@@ -244,9 +245,11 @@ if (st === "cancelado" || st === "aprovado") {
 ============================= */
 const params = new URLSearchParams(window.location.search);
 
-// valores vindos do HOME
-let qtd = parseInt(params.get("qtd")) || 1;
-let valorTotal = parseFloat(params.get("valor")) || 1.99;
+let qtd = parseInt(params.get("qtd"), 10);
+let valorTotal = parseFloat(params.get("valor"));
+
+if (!qtd || qtd < 1) qtd = 1;
+if (!valorTotal || valorTotal <= 0) valorTotal = 1.99;
 
 // calcula valor unitário REAL
 let valorUnitario = valorTotal / qtd;
@@ -258,12 +261,12 @@ const qtdEl = document.getElementById("qtd");
 const totalEl = document.getElementById("total");
 
 /* =============================
-   🔹 INICIALIZA
+   🔹 INICIALIZA TELA
 ============================= */
 atualizarTela();
 
 /* =============================
-   🔹 FUNÇÕES
+   🔹 FUNÇÕES DE QTD
 ============================= */
 function atualizarTela() {
   qtdEl.innerText = qtd;
@@ -276,6 +279,9 @@ function alterar(v) {
   atualizarTela();
 }
 
+/* =============================
+   🔹 COPIAR PIX
+============================= */
 function copiar() {
   navigator.clipboard.writeText(
     document.getElementById("pixCopy").innerText
@@ -328,7 +334,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
 });
 
 /* =============================
-   🔹 VERIFICAÇÃO
+   🔹 VERIFICA STATUS
 ============================= */
 async function verificar(id) {
   const loop = setInterval(async () => {
@@ -367,7 +373,7 @@ function iniciarTimer() {
 }
 
 /* =============================
-   🔹 VOLTAR DO PIX
+   🔹 VOLTOU DO PIX
 ============================= */
 window.addEventListener("pageshow", (event) => {
   const status = localStorage.getItem("statusPagamento");
@@ -380,8 +386,10 @@ window.addEventListener("pageshow", (event) => {
 
 
 
+
 </body>
 </html>
+
 
 
 
